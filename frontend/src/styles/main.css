@@ -1,0 +1,81 @@
+/* App Container */
+.app-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background-color: #f8fafc;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  height: 100vh;
+  overflow-y: auto;
+  background-color: #0f172a;
+  color: #f8fafc;
+  padding: 20px 16px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #94a3b8;
+  text-decoration: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.sidebar a:hover {
+  background-color: #1e293b;
+  color: #f8fafc;
+  transform: translateX(3px);
+}
+
+.sidebar a.active {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+/* Main Content Area */
+.main-content {
+  flex: 1;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 30px 36px;
+  background-color: #f1f5f9;
+}
+
+/* Scrollbars */
+.sidebar::-webkit-scrollbar,
+.main-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+
+.main-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.main-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}

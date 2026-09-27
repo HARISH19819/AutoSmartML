@@ -1,0 +1,55 @@
+# Python Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+
+# Environment Variables & Secrets
+.env
+*.env
+backend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Node & Frontend
+frontend/node_modules/
+node_modules/
+frontend/build/
+build/
+dist/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# AutoSmartML Storage & Generated Artifacts (keep folder structure, ignore contents)
+backend/storage/datasets/*
+!backend/storage/datasets/.gitkeep
+backend/storage/images/*
+!backend/storage/images/.gitkeep
+backend/storage/models/*
+!backend/storage/models/.gitkeep
+backend/storage/charts/*
+!backend/storage/charts/.gitkeep
+
+# Stray files
+backend/download-model
+*.joblib
+*.pkl
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
