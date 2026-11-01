@@ -53,8 +53,12 @@ from services.prediction_service import make_prediction
 app = Flask(__name__)
 
 # Security: Configurable CORS origins (defaults to wildcard for development)
-cors_origins = os.environ.get("CORS_ORIGINS", "*")
-CORS(app, resources={r"/*": {"origins": cors_origins}})
+cors_origins_raw = os.environ.get("CORS_ORIGINS", "*")
+if cors_origins_raw.strip() == "*":
+    CORS(app, resources={r"/*": {"origins": "*"}})
+else:
+    origins_list = [o.strip() for o in cors_origins_raw.split(",") if o.strip()]
+    CORS(app, resources={r"/*": {"origins": origins_list}})
 
 # Security: Limit maximum upload size (default 32MB) to prevent Denial-of-Service attacks
 app.config["MAX_CONTENT_LENGTH"] = int(os.environ.get("MAX_CONTENT_LENGTH", 32 * 1024 * 1024))

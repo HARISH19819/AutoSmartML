@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: autosmartml-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 app:app
+    envVars:
+      - key: FLASK_DEBUG
+        value: "False"
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: MAX_CONTENT_LENGTH
+        value: "33554432"
+      - key: GEMINI_API_KEY
+        sync: false
