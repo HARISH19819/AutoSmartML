@@ -1,9 +1,48 @@
 import os
+import json
 import pandas as pd
 import numpy as np
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STORAGE_DIR = os.path.join(BASE_DIR, "storage")
+DATASET_DIR = os.path.join(STORAGE_DIR, "datasets")
+os.makedirs(DATASET_DIR, exist_ok=True)
+
+ACTIVE_DATASET_FILE = os.path.join(DATASET_DIR, "active_dataset.csv")
+RAW_DATASET_FILE = os.path.join(DATASET_DIR, "raw_dataset.csv")
+STATE_FILE = os.path.join(STORAGE_DIR, "active_state.json")
+
 global_df = None
 RAW_DF = None
+
+
+def load_state():
+    if os.path.exists(STATE_FILE):
+        try:
+            with open(STATE_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return {}
+    return {}
+
+
+def save_state(state_dict):
+    try:
+        with open(STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(state_dict, f, indent=2)
+    except Exception:
+        pass
+
+
+def set_active_target(target):
+    state = load_state()
+    state["target_column"] = target
+    save_state(state)
+
+
+def get_active_target():
+    state = load_state()
+    return state.get("target_column")
 
 
 class DataService:
@@ -21,8 +60,8 @@ class DataService:
         if df.empty:
             return {"error": "Uploaded CSV file is empty"}
 
-        RAW_DF = df.copy()
-        global_df = df.copy()
+        set_raw_dataframe(df)
+        set_dataframe(df)
 
         rows, cols = df.shape
 
@@ -76,26 +115,53 @@ class DataService:
 
 
 # -----------------------------
-# GLOBAL STATE HELPERS
+# PERSISTENT STATE HELPERS
 # -----------------------------
 
 def set_dataframe(df):
     global global_df
     global_df = df.copy() if df is not None else None
+    if global_df is not None:
+        try:
+            global_df.to_csv(ACTIVE_DATASET_FILE, index=False)
+        except Exception:
+            pass
 
 
 def get_dataframe():
     global global_df
+    if global_df is None:
+        if os.path.exists(ACTIVE_DATASET_FILE):
+            try:
+                global_df = pd.read_csv(ACTIVE_DATASET_FILE)
+            except Exception:
+                pass
     return global_df
 
 
 def set_raw_dataframe(df):
     global RAW_DF
     RAW_DF = df.copy() if df is not None else None
+    if RAW_DF is not None:
+        try:
+            RAW_DF.to_csv(RAW_DATASET_FILE, index=False)
+        except Exception:
+            pass
 
 
 def get_raw_dataframe():
     global RAW_DF
+    if RAW_DF is None:
+        if os.path.exists(RAW_DATASET_FILE):
+            try:
+                RAW_DF = pd.read_csv(RAW_DATASET_FILE)
+            except Exception:
+                pass
+        if RAW_DF is None and os.path.exists(ACTIVE_DATASET_FILE):
+            try:
+                RAW_DF = pd.read_csv(ACTIVE_DATASET_FILE)
+            except Exception:
+                pass
     return RAW_DF
 
 
@@ -103,3 +169,9 @@ def reset_data():
     global global_df, RAW_DF
     global_df = None
     RAW_DF = None
+    for f in [ACTIVE_DATASET_FILE, RAW_DATASET_FILE, STATE_FILE]:
+        if os.path.exists(f):
+            try:
+                os.remove(f)
+            except Exception:
+                pass

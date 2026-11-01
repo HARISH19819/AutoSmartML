@@ -4,7 +4,7 @@ import { cleanDataset } from "../api";
 import { AppContext } from "../context/AppContext";
 
 function CleanDataset() {
-  const { cleanedData, setCleanedData } = useContext(AppContext);
+  const { cleanedData, setCleanedData, targetColumn } = useContext(AppContext);
   const [loading, setLoading] = useState(false);
   const [aiInsights, setAiInsights] = useState("");
   const [error, setError] = useState("");
@@ -21,7 +21,7 @@ function CleanDataset() {
     setError("");
 
     try {
-      const res = await cleanDataset();
+      const res = await cleanDataset(targetColumn);
       setCleanedData(res.report);
       if (res.ai_insights) {
         setAiInsights(res.ai_insights);
@@ -47,7 +47,7 @@ function CleanDataset() {
           </p>
         </div>
         {report && (
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
             <button className="btn" style={{ background: "#0284c7" }} onClick={() => navigate("/eda")}>
               📈 View EDA Charts →
             </button>
@@ -63,6 +63,7 @@ function CleanDataset() {
         <h3>Run Automated Preprocessing</h3>
         <p className="page-subtitle">
           Executes automatic missing value imputation, duplicate removal, and encoding on the active dataset
+          {targetColumn && <span> (Preserving target: <strong>{targetColumn}</strong>)</span>}
         </p>
 
         <button className="btn" onClick={handleClean} disabled={loading}>

@@ -1,13 +1,14 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { setTargetColumn as setTargetAPI } from "../api";
+import { setTargetColumn as setTargetAPI, getApiBaseUrl } from "../api";
 import { AppContext } from "../context/AppContext";
 
 function DatasetInfo() {
-  const { datasetInfo, targetColumn, setTargetColumn } = useContext(AppContext);
+  const { datasetInfo, setDatasetInfo, targetColumn, setTargetColumn } = useContext(AppContext);
   const [target, setTarget] = useState(targetColumn || "");
   const [statusMsg, setStatusMsg] = useState("");
   const [loading, setLoading] = useState(false);
+  const [fetchingInfo, setFetchingInfo] = useState(!datasetInfo);
   const navigate = useNavigate();
 
   const safeRender = (value) => {
@@ -19,6 +20,46 @@ function DatasetInfo() {
       return "—";
     }
   };
+
+  useEffect(() => {
+    if (targetColumn) {
+      setTarget(targetColumn);
+    }
+  }, [targetColumn]);
+
+  useEffect(() => {
+    if (!datasetInfo) {
+      setFetchingInfo(true);
+      fetch(`${getApiBaseUrl()}/dataset-info`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data && data.summary && data.summary.rows > 0) {
+            setDatasetInfo({
+              rows: data.summary.rows,
+              columns: data.summary.columns,
+              numeric_columns: data.summary.numeric_columns || [],
+              categorical_columns: data.summary.categorical_columns || [],
+              missing_values: data.summary.missing_values || {},
+              sample_rows: []
+            });
+          }
+        })
+        .catch(() => {})
+        .finally(() => setFetchingInfo(false));
+    } else {
+      setFetchingInfo(false);
+    }
+  }, [datasetInfo, setDatasetInfo]);
+
+  if (fetchingInfo) {
+    return (
+      <div className="main">
+        <div className="card" style={{ textAlign: "center", padding: "40px" }}>
+          <p style={{ fontSize: "16px", color: "#475569" }}>⏳ Loading dataset metadata from backend...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!datasetInfo) {
     return (
@@ -74,7 +115,7 @@ function DatasetInfo() {
             Explore schema, dimensions, missing value patterns, and feature distributions
           </p>
         </div>
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
           <button className="btn" style={{ background: "#8b5cf6" }} onClick={() => navigate("/ai-report")}>
             🧠 AI Intelligence Report
           </button>
@@ -161,48 +202,49 @@ function DatasetInfo() {
       </div>
 
       {/* SAMPLE DATA */}
-      <div className="card">
-        <h3>🧾 Sample Records (First 5 Rows)</h3>
-        <div style={{ overflowX: "auto" }}>
-          <table className="table">
-            <thead>
-              <tr>
-                {datasetInfo.sample_rows?.length > 0 &&
-                  Object.keys(datasetInfo.sample_rows[0]).map((col) => (
+      {datasetInfo.sample_rows && datasetInfo.sample_rows.length > 0 && (
+        <div className="card">
+          <h3>🧾 Sample Records (First 5 Rows)</h3>
+          <div style={{ overflowX: "auto" }}>
+            <table className="table">
+              <thead>
+                <tr>
+                  {Object.keys(datasetInfo.sample_rows[0]).map((col) => (
                     <th key={col}>{col}</th>
                   ))}
-              </tr>
-            </thead>
-            <tbody>
-              {datasetInfo.sample_rows?.map((row, i) => (
-                <tr key={i}>
-                  {Object.keys(row).map((key, j) => (
-                    <td key={j}>{safeRender(row[key])}</td>
-                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {datasetInfo.sample_rows.map((row, i) => (
+                  <tr key={i}>
+                    {Object.keys(row).map((key, j) => (
+                      <td key={j}>{safeRender(row[key])}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* NUMERIC FEATURES */}
-      <div className="card">
-        <h3>📈 Numerical Features Summary</h3>
-        <div style={{ overflowX: "auto" }}>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Feature</th>
-                <th>Mean</th>
-                <th>Std Dev</th>
-                <th>Min</th>
-                <th>Max</th>
-              </tr>
-            </thead>
-            <tbody>
-              {datasetInfo.numeric_summary &&
-                Object.entries(datasetInfo.numeric_summary).map(([col, val]) => (
+      {datasetInfo.numeric_summary && Object.keys(datasetInfo.numeric_summary).length > 0 && (
+        <div className="card">
+          <h3>📈 Numerical Features Summary</h3>
+          <div style={{ overflowX: "auto" }}>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>Mean</th>
+                  <th>Std Dev</th>
+                  <th>Min</th>
+                  <th>Max</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(datasetInfo.numeric_summary).map(([col, val]) => (
                   <tr key={col}>
                     <td><strong>{col}</strong></td>
                     <td>{safeRender(val?.mean)}</td>
@@ -211,36 +253,38 @@ function DatasetInfo() {
                     <td>{safeRender(val?.max)}</td>
                   </tr>
                 ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* CATEGORICAL FEATURES */}
-      <div className="card">
-        <h3>📊 Categorical Features Summary</h3>
-        <div style={{ overflowX: "auto" }}>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Feature</th>
-                <th>Unique Classes</th>
-                <th>Dominant Class (Mode)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {datasetInfo.categorical_summary &&
-                Object.entries(datasetInfo.categorical_summary).map(([col, val]) => (
+      {datasetInfo.categorical_summary && Object.keys(datasetInfo.categorical_summary).length > 0 && (
+        <div className="card">
+          <h3>📊 Categorical Features Summary</h3>
+          <div style={{ overflowX: "auto" }}>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>Unique Classes</th>
+                  <th>Dominant Class (Mode)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(datasetInfo.categorical_summary).map(([col, val]) => (
                   <tr key={col}>
                     <td><strong>{col}</strong></td>
                     <td>{safeRender(val?.unique)}</td>
                     <td>{safeRender(val?.top)}</td>
                   </tr>
                 ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

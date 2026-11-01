@@ -16,7 +16,9 @@ from services.data_service import (
     get_dataframe,
     set_dataframe,
     get_raw_dataframe,
-    set_raw_dataframe
+    set_raw_dataframe,
+    set_active_target,
+    get_active_target
 )
 from services.cleaning_service import clean_dataset
 from services.eda_service import (
@@ -66,8 +68,18 @@ os.makedirs(DATASET_DIR, exist_ok=True)
 os.makedirs(IMAGE_DIR, exist_ok=True)
 os.makedirs(MODEL_DIRECTORY, exist_ok=True)
 
-TARGET_COLUMN = None
 data_service = DataService()
+
+
+def _resolve_target(target, df=None):
+    if not target:
+        return target
+    if df is None:
+        df = get_dataframe()
+    if df is not None and not df.empty:
+        col_map = {c.lower(): c for c in df.columns}
+        return col_map.get(str(target).strip().lower(), str(target).strip())
+    return str(target).strip()
 
 
 # -----------------------------
@@ -115,8 +127,6 @@ def health():
 
 @app.route("/upload-dataset", methods=["POST"])
 def upload_dataset():
-    global TARGET_COLUMN
-
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded. Please select a CSV file."}), 400
 
@@ -142,7 +152,7 @@ def upload_dataset():
         df = pd.read_csv(filepath)
         set_dataframe(df)
         set_raw_dataframe(df)
-        TARGET_COLUMN = None
+        set_active_target("")
     except Exception as e:
         return jsonify({"error": f"Failed to parse CSV: {str(e)}"}), 400
 
@@ -174,22 +184,25 @@ def dataset_info():
 
 @app.route("/set-target", methods=["POST"])
 def set_target():
-    global TARGET_COLUMN
-
     data = request.get_json(silent=True) or {}
-    target = data.get("target", "").strip()
+    raw_target = data.get("target", "").strip()
 
-    if not target:
+    if not raw_target:
         return jsonify({"error": "Target column cannot be empty"}), 400
 
     df = get_dataframe()
-    if df is not None and target not in df.columns:
-        return jsonify({"error": f"Column '{target}' not found in dataset"}), 400
+    if df is None or df.empty:
+        return jsonify({"error": "No dataset loaded. Upload a dataset first."}), 400
 
-    TARGET_COLUMN = target
+    col_map = {c.lower(): c for c in df.columns}
+    if raw_target.lower() not in col_map:
+        return jsonify({"error": f"Column '{raw_target}' not found in dataset"}), 400
+
+    target = col_map[raw_target.lower()]
+    set_active_target(target)
     return jsonify({
-        "message": f"Target column set to '{TARGET_COLUMN}' successfully",
-        "target": TARGET_COLUMN
+        "message": f"Target column set to '{target}' successfully",
+        "target": target
     })
 
 
@@ -199,14 +212,15 @@ def set_target():
 
 @app.route("/clean-data", methods=["POST"])
 def clean_data():
-    global TARGET_COLUMN
-
     df = get_dataframe()
     if df is None or df.empty:
         return jsonify({"error": "No dataset loaded. Upload a dataset first."}), 400
 
+    data = request.get_json(silent=True) or {}
+    target = _resolve_target(data.get("target") or get_active_target(), df)
+
     try:
-        cleaned_df, report = clean_dataset(df, TARGET_COLUMN)
+        cleaned_df, report = clean_dataset(df, target)
         set_dataframe(cleaned_df)
         summary = create_dataset_summary(cleaned_df)
         ai_insights = cleaning_ai(summary)
@@ -249,6 +263,8 @@ def eda_histogram():
     if not column:
         return jsonify({"error": "Column is required"}), 400
 
+    column = _resolve_target(column, df)
+
     try:
         chart_path = generate_histogram(df, column)
         ai_insight = eda_chart_ai("histogram", column, df)
@@ -267,6 +283,8 @@ def eda_boxplot():
     column = data.get("column")
     if not column:
         return jsonify({"error": "Column is required"}), 400
+
+    column = _resolve_target(column, df)
 
     try:
         chart_path = generate_boxplot(df, column)
@@ -287,6 +305,8 @@ def eda_countplot():
     if not column:
         return jsonify({"error": "Column is required"}), 400
 
+    column = _resolve_target(column, df)
+
     try:
         chart_path = generate_countplot(df, column)
         ai_insight = eda_chart_ai("countplot", column, df)
@@ -301,9 +321,10 @@ def eda_heatmap():
     if df is None:
         return jsonify({"error": "No dataset loaded"}), 400
 
+    target = _resolve_target(get_active_target(), df)
     try:
-        chart_path = generate_heatmap(df, TARGET_COLUMN)
-        ai_insight = eda_chart_ai("heatmap", "all features", df, TARGET_COLUMN)
+        chart_path = generate_heatmap(df, target)
+        ai_insight = eda_chart_ai("heatmap", "all features", df, target)
         return jsonify({"chart": chart_path, "ai_insight": ai_insight})
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -315,22 +336,20 @@ def eda_heatmap():
 
 @app.route("/split", methods=["POST"])
 def split():
-    global TARGET_COLUMN
-
-    data = request.get_json(silent=True) or {}
-    test_size = float(data.get("test_size", 0.2))
-    target = data.get("target") or TARGET_COLUMN
-
-    if not target:
-        return jsonify({"error": "Target column is required for split"}), 400
-
     df = get_dataframe()
     if df is None:
         return jsonify({"error": "No dataset loaded"}), 400
 
+    data = request.get_json(silent=True) or {}
+    test_size = float(data.get("test_size", 0.2))
+    target = _resolve_target(data.get("target") or get_active_target(), df)
+
+    if not target:
+        return jsonify({"error": "Target column is required for split"}), 400
+
     try:
         result = perform_train_test_split(df, target, test_size)
-        TARGET_COLUMN = target
+        set_active_target(target)
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": str(e)}), 400
@@ -346,7 +365,7 @@ def recommend_models_route():
     if df is None:
         return jsonify({"error": "No dataset loaded"}), 400
 
-    target = request.args.get("target") or TARGET_COLUMN
+    target = _resolve_target(request.args.get("target") or get_active_target(), df)
     if not target:
         return jsonify({"error": "Target column is required"}), 400
 
@@ -361,10 +380,12 @@ def recommend_models_route():
 
 @app.route("/train_models", methods=["POST"])
 def train_models_route():
-    global TARGET_COLUMN
+    df = get_dataframe()
+    if df is None:
+        return jsonify({"error": "No dataset loaded"}), 400
 
     data = request.get_json(silent=True) or {}
-    target = data.get("target") or TARGET_COLUMN
+    target = _resolve_target(data.get("target") or get_active_target(), df)
 
     if not target:
         return jsonify({"error": "Target column is required to train models"}), 400
@@ -373,7 +394,7 @@ def train_models_route():
         result = train_models(target)
         if "error" in result:
             return jsonify(result), 400
-        TARGET_COLUMN = target
+        set_active_target(target)
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": f"Training failed: {str(e)}"}), 500
@@ -385,10 +406,12 @@ def train_models_route():
 
 @app.route("/feature_importance", methods=["POST"])
 def feature_importance():
-    global TARGET_COLUMN
+    df = get_dataframe()
+    if df is None:
+        return jsonify({"error": "Dataset not loaded. Please upload dataset first."}), 400
 
     data = request.get_json(silent=True) or {}
-    target = data.get("target") or TARGET_COLUMN
+    target = _resolve_target(data.get("target") or get_active_target(), df)
 
     if not target:
         return jsonify({"error": "Target column not provided"}), 400
@@ -438,13 +461,16 @@ def predict():
 
 @app.route("/get_features", methods=["GET"])
 def get_features():
-    df = get_raw_dataframe() or get_dataframe()
-    if df is None:
+    raw_df = get_raw_dataframe()
+    df = raw_df if raw_df is not None else get_dataframe()
+    if df is None or df.empty:
         return jsonify({"error": "Dataset not loaded. Please upload dataset first."}), 400
+
+    target = _resolve_target(get_active_target(), df)
 
     features = []
     for col in df.columns:
-        if col == TARGET_COLUMN:
+        if col == target:
             continue
 
         unique_vals = df[col].dropna().unique()
@@ -498,5 +524,5 @@ def serve_image(filename):
 
 if __name__ == "__main__":
     port = int(os.environ.get("FLASK_PORT", 5000))
-    debug = os.environ.get("FLASK_DEBUG", "True").lower() == "true"
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    debug = os.environ.get("FLASK_DEBUG", "False").lower() == "true"
+    app.run(host="0.0.0.0", port=port, debug=debug, use_reloader=False)

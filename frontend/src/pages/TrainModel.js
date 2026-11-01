@@ -1,12 +1,14 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { trainModel, getDownloadModelUrl } from "../api";
+import { trainModel, getDownloadModelUrl, setTargetColumn as setTargetAPI, getNumericColumns, getCategoricalColumns } from "../api";
 import { AppContext } from "../context/AppContext";
 
 function TrainModel() {
-  const { targetColumn, trainedModel, setTrainedModel } = useContext(AppContext);
+  const { targetColumn, setTargetColumn, trainedModel, setTrainedModel } = useContext(AppContext);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [localTarget, setLocalTarget] = useState(targetColumn || "");
+  const [columns, setColumns] = useState([]);
   const navigate = useNavigate();
 
   const safeRender = (val) => {
@@ -15,9 +17,23 @@ function TrainModel() {
     return val.toString();
   };
 
+  useEffect(() => {
+    if (targetColumn) {
+      setLocalTarget(targetColumn);
+    } else {
+      Promise.all([getNumericColumns(), getCategoricalColumns()])
+        .then(([num, cat]) => {
+          setColumns([...(num.columns || []), ...(cat.columns || [])]);
+        })
+        .catch(() => {});
+    }
+  }, [targetColumn]);
+
   const handleTraining = async () => {
-    if (!targetColumn) {
-      setError("Please set a target column in the Dataset Overview or Split page first.");
+    const targetToUse = targetColumn || localTarget;
+
+    if (!targetToUse) {
+      setError("Please select a target column first.");
       return;
     }
 
@@ -25,7 +41,12 @@ function TrainModel() {
     setError("");
 
     try {
-      const res = await trainModel(targetColumn);
+      if (!targetColumn && localTarget) {
+        await setTargetAPI(localTarget);
+        setTargetColumn(localTarget);
+      }
+
+      const res = await trainModel(targetToUse);
       if (res.error) {
         throw new Error(res.error);
       }
@@ -76,13 +97,29 @@ function TrainModel() {
       <div className="card">
         <h3>Training Execution Control</h3>
         <p className="page-subtitle">
-          Target column: <strong>{targetColumn || <span style={{ color: "#ef4444" }}>Not Configured</span>}</strong>
+          Active target: <strong>{targetColumn || localTarget || "Not Configured"}</strong>
         </p>
+
+        {!targetColumn && columns.length > 0 && (
+          <div style={{ marginBottom: "15px", display: "flex", gap: "10px", alignItems: "center" }}>
+            <select
+              className="input"
+              value={localTarget}
+              onChange={(e) => setLocalTarget(e.target.value)}
+              style={{ marginTop: 0, minWidth: "220px" }}
+            >
+              <option value="">-- Select Target Column --</option>
+              {columns.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <button
           className="btn"
           onClick={handleTraining}
-          disabled={loading || !targetColumn}
+          disabled={loading || (!targetColumn && !localTarget)}
           style={{ fontSize: "16px", padding: "12px 24px" }}
         >
           {loading ? "⏳ Training & Benchmarking Models..." : "🚀 Train All AutoML Models"}
@@ -101,7 +138,7 @@ function TrainModel() {
       {/* RESULTS DISPLAY */}
       {result && (
         <div className="card">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "15px", flexWrap: "wrap", gap: "10px" }}>
             <h3>🏆 Leaderboard & Benchmark Scores</h3>
             <span
               style={{

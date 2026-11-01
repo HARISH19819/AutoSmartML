@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import {
   getNumericColumns,
@@ -12,6 +13,7 @@ import {
 
 function EDA() {
   const { edaData, setEdaData } = useContext(AppContext);
+  const navigate = useNavigate();
 
   const [numericCols, setNumericCols] = useState([]);
   const [categoricalCols, setCategoricalCols] = useState([]);
@@ -38,14 +40,17 @@ function EDA() {
       const numData = await getNumericColumns();
       const catData = await getCategoricalColumns();
 
-      setNumericCols(numData.columns || []);
-      setCategoricalCols(catData.columns || []);
+      const nums = numData.columns || [];
+      const cats = catData.columns || [];
 
-      if (numData.columns && numData.columns.length > 0) {
-        setSelectedNum(numData.columns[0]);
+      setNumericCols(nums);
+      setCategoricalCols(cats);
+
+      if (nums.length > 0) {
+        setSelectedNum(nums[0]);
       }
-      if (catData.columns && catData.columns.length > 0) {
-        setSelectedCat(catData.columns[0]);
+      if (cats.length > 0) {
+        setSelectedCat(cats[0]);
       }
     } catch (err) {
       console.error("Failed to fetch columns:", err);
@@ -62,7 +67,10 @@ function EDA() {
   };
 
   const handleHistogram = async () => {
-    if (!selectedNum) return alert("Please select a numeric column.");
+    if (!selectedNum) {
+      setError("Please select a numeric column first.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -76,7 +84,10 @@ function EDA() {
   };
 
   const handleBoxplot = async () => {
-    if (!selectedNum) return alert("Please select a numeric column.");
+    if (!selectedNum) {
+      setError("Please select a numeric column first.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -90,7 +101,10 @@ function EDA() {
   };
 
   const handleCountplot = async () => {
-    if (!selectedCat) return alert("Please select a categorical column.");
+    if (!selectedCat) {
+      setError("Please select a categorical column first.");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -121,14 +135,32 @@ function EDA() {
 
   return (
     <div className="main">
-      <h2 className="page-title">📈 Exploratory Data Analysis (EDA)</h2>
-      <p className="page-subtitle">
-        Interactive visualization with automated distribution and outlier analysis
-      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px" }}>
+        <div>
+          <h2 className="page-title">📈 Exploratory Data Analysis (EDA)</h2>
+          <p className="page-subtitle">
+            Interactive visualization with automated distribution and outlier analysis
+          </p>
+        </div>
+        <button className="btn" onClick={() => navigate("/split")}>
+          ✂️ Proceed to Split →
+        </button>
+      </div>
 
       {error && (
         <div className="card" style={{ background: "#fef2f2", color: "#dc2626" }}>
           ❌ {error}
+        </div>
+      )}
+
+      {numericCols.length === 0 && categoricalCols.length === 0 && (
+        <div className="card" style={{ borderLeft: "5px solid #f59e0b" }}>
+          <p style={{ color: "#d97706" }}>
+            ⚠️ No features detected in memory. Please upload a dataset first.
+          </p>
+          <button className="btn" onClick={() => navigate("/")} style={{ marginTop: "12px" }}>
+            📂 Go to Upload Page
+          </button>
         </div>
       )}
 
@@ -143,6 +175,7 @@ function EDA() {
             className="input"
             value={selectedNum}
             onChange={(e) => setSelectedNum(e.target.value)}
+            disabled={numericCols.length === 0}
           >
             <option value="">-- Choose Numeric Column --</option>
             {numericCols.map((col) => (
@@ -150,7 +183,7 @@ function EDA() {
             ))}
           </select>
 
-          <div style={{ marginTop: "15px", display: "flex", gap: "10px" }}>
+          <div style={{ marginTop: "15px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
             <button className="btn" onClick={handleHistogram} disabled={loading || !selectedNum}>
               📊 Histogram & KDE
             </button>
@@ -175,6 +208,7 @@ function EDA() {
             className="input"
             value={selectedCat}
             onChange={(e) => setSelectedCat(e.target.value)}
+            disabled={categoricalCols.length === 0}
           >
             <option value="">-- Choose Categorical Column --</option>
             {categoricalCols.map((col) => (

@@ -1,6 +1,6 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { splitDataset, setTargetColumn as setTargetAPI } from "../api";
+import { splitDataset, setTargetColumn as setTargetAPI, getNumericColumns, getCategoricalColumns } from "../api";
 import { AppContext } from "../context/AppContext";
 
 function TrainSplit() {
@@ -8,6 +8,7 @@ function TrainSplit() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [localTarget, setLocalTarget] = useState(targetColumn || "");
+  const [availableColumns, setAvailableColumns] = useState([]);
   const navigate = useNavigate();
 
   const safeRender = (val) => {
@@ -15,6 +16,27 @@ function TrainSplit() {
     if (typeof val === "object") return JSON.stringify(val);
     return val.toString();
   };
+
+  useEffect(() => {
+    if (targetColumn) {
+      setLocalTarget(targetColumn);
+    }
+  }, [targetColumn]);
+
+  useEffect(() => {
+    if (datasetInfo) {
+      setAvailableColumns([
+        ...(datasetInfo.numeric_columns || []),
+        ...(datasetInfo.categorical_columns || []),
+      ]);
+    } else {
+      Promise.all([getNumericColumns(), getCategoricalColumns()])
+        .then(([num, cat]) => {
+          setAvailableColumns([...(num.columns || []), ...(cat.columns || [])]);
+        })
+        .catch(() => {});
+    }
+  }, [datasetInfo]);
 
   const handleSplit = async (size) => {
     const targetToUse = targetColumn || localTarget;
@@ -28,10 +50,8 @@ function TrainSplit() {
     setError("");
 
     try {
-      if (!targetColumn && localTarget) {
-        await setTargetAPI(localTarget);
-        setTargetColumn(localTarget);
-      }
+      await setTargetAPI(targetToUse);
+      setTargetColumn(targetToUse);
 
       const res = await splitDataset(targetToUse, size);
       setSplitData(res);
@@ -42,11 +62,6 @@ function TrainSplit() {
       setLoading(false);
     }
   };
-
-  const allColumns = [
-    ...(datasetInfo?.numeric_columns || []),
-    ...(datasetInfo?.categorical_columns || []),
-  ];
 
   const result = splitData;
 
@@ -74,50 +89,59 @@ function TrainSplit() {
       )}
 
       {/* TARGET SELECTION IF NOT SET */}
-      {!targetColumn && (
-        <div className="card" style={{ borderLeft: "5px solid #f59e0b" }}>
-          <h3>⚠️ Select Target Feature</h3>
-          <p className="page-subtitle">Please define the target column to split around</p>
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-            <select
-              className="input"
-              value={localTarget}
-              onChange={(e) => setLocalTarget(e.target.value)}
-              style={{ marginTop: 0, minWidth: "220px" }}
-            >
-              <option value="">-- Select Target --</option>
-              {allColumns.map((col) => (
-                <option key={col} value={col}>{col}</option>
-              ))}
-            </select>
-            <button
-              className="btn"
-              onClick={async () => {
-                if (localTarget) {
+      <div className="card" style={{ borderLeft: targetColumn ? "5px solid #10b981" : "5px solid #f59e0b" }}>
+        <h3>🎯 Target Feature Configuration</h3>
+        <p className="page-subtitle">
+          {targetColumn
+            ? `Active Supervised Target: ${targetColumn}`
+            : "Select the target column you want to predict:"}
+        </p>
+
+        <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+          <select
+            className="input"
+            value={localTarget}
+            onChange={(e) => setLocalTarget(e.target.value)}
+            style={{ marginTop: 0, minWidth: "240px" }}
+          >
+            <option value="">-- Choose Target Feature --</option>
+            {availableColumns.map((col) => (
+              <option key={col} value={col}>{col}</option>
+            ))}
+          </select>
+
+          <button
+            className="btn"
+            onClick={async () => {
+              if (localTarget) {
+                try {
                   await setTargetAPI(localTarget);
                   setTargetColumn(localTarget);
+                  setError("");
+                } catch (e) {
+                  setError("Failed to save target column.");
                 }
-              }}
-              disabled={!localTarget}
-            >
-              Save Target
-            </button>
-          </div>
+              }
+            }}
+            disabled={!localTarget || localTarget === targetColumn}
+          >
+            {localTarget === targetColumn ? "✓ Target Saved" : "Save Target"}
+          </button>
         </div>
-      )}
+      </div>
 
       {/* CONTROL PANEL */}
       <div className="card">
         <h3>Choose Partition Ratio</h3>
         <p className="page-subtitle">
-          Active Target: <strong>{targetColumn || localTarget || "Not Specified"}</strong>
+          Stratified partitioning for target: <strong>{targetColumn || localTarget || "Not Specified"}</strong>
         </p>
 
         <div className="grid grid-3">
           <button
             className="btn"
             onClick={() => handleSplit(0.3)}
-            disabled={loading}
+            disabled={loading || (!targetColumn && !localTarget)}
           >
             📊 70% Train / 30% Test
           </button>
@@ -125,7 +149,7 @@ function TrainSplit() {
           <button
             className="btn"
             onClick={() => handleSplit(0.2)}
-            disabled={loading}
+            disabled={loading || (!targetColumn && !localTarget)}
             style={{ background: "#0284c7" }}
           >
             📊 80% Train / 20% Test (Recommended)
@@ -134,7 +158,7 @@ function TrainSplit() {
           <button
             className="btn"
             onClick={() => handleSplit(0.1)}
-            disabled={loading}
+            disabled={loading || (!targetColumn && !localTarget)}
             style={{ background: "#8b5cf6" }}
           >
             📊 90% Train / 10% Test

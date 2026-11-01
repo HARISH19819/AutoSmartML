@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { evaluateModel, getDownloadModelUrl } from "../api";
 import { AppContext } from "../context/AppContext";
@@ -45,6 +45,12 @@ function ModelEvaluation() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!evaluationData && trainedModel) {
+      handleEvaluate();
+    }
+  }, [trainedModel]);
 
   const data = evaluationData;
 
@@ -114,7 +120,7 @@ function ModelEvaluation() {
           </p>
         </div>
 
-        <div style={{ display: "flex", gap: "10px" }}>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
           <button className="btn" style={{ background: "#8b5cf6" }} onClick={() => navigate("/predict")}>
             🔮 Live Predict →
           </button>
@@ -229,44 +235,47 @@ function ModelEvaluation() {
           <h3>🧠 Confusion Matrix (Validation Set)</h3>
           <p className="page-subtitle">Actual classes vs. Predicted classes</p>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: `repeat(${data.confusion_matrix.length + 1}, minmax(80px, 120px))`,
-              gap: "8px",
-              justifyContent: "center",
-              marginTop: "20px",
-            }}
-          >
-            <div style={{ textAlign: "center", padding: "10px", fontWeight: "bold" }}>Actual \ Pred</div>
-            {data.confusion_matrix.map((_, i) => (
-              <div key={i} style={{ textAlign: "center", padding: "10px", fontWeight: "bold", background: "#f1f5f9", borderRadius: "6px" }}>
-                P: {classes[i] !== undefined ? classes[i] : i}
-              </div>
-            ))}
-
-            {data.confusion_matrix.map((row, i) => (
-              <React.Fragment key={i}>
-                <div style={{ textAlign: "center", padding: "10px", fontWeight: "bold", background: "#f1f5f9", borderRadius: "6px" }}>
-                  A: {classes[i] !== undefined ? classes[i] : i}
+          <div style={{ overflowX: "auto", padding: "10px 0" }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${data.confusion_matrix.length + 1}, minmax(80px, 120px))`,
+                gap: "8px",
+                justifyContent: "center",
+                marginTop: "10px",
+                minWidth: `${(data.confusion_matrix.length + 1) * 90}px`
+              }}
+            >
+              <div style={{ textAlign: "center", padding: "10px", fontWeight: "bold" }}>Actual \ Pred</div>
+              {data.confusion_matrix.map((_, i) => (
+                <div key={i} style={{ textAlign: "center", padding: "10px", fontWeight: "bold", background: "#f1f5f9", borderRadius: "6px" }}>
+                  P: {classes[i] !== undefined ? classes[i] : i}
                 </div>
-                {row.map((val, j) => (
-                  <div
-                    key={j}
-                    style={{
-                      background: i === j ? "#10b981" : "#ef4444",
-                      color: "#fff",
-                      padding: "12px",
-                      borderRadius: "6px",
-                      textAlign: "center",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {safeRender(val)}
+              ))}
+
+              {data.confusion_matrix.map((row, i) => (
+                <React.Fragment key={i}>
+                  <div style={{ textAlign: "center", padding: "10px", fontWeight: "bold", background: "#f1f5f9", borderRadius: "6px" }}>
+                    A: {classes[i] !== undefined ? classes[i] : i}
                   </div>
-                ))}
-              </React.Fragment>
-            ))}
+                  {row.map((val, j) => (
+                    <div
+                      key={j}
+                      style={{
+                        background: i === j ? "#10b981" : "#ef4444",
+                        color: "#fff",
+                        padding: "12px",
+                        borderRadius: "6px",
+                        textAlign: "center",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {safeRender(val)}
+                    </div>
+                  ))}
+                </React.Fragment>
+              ))}
+            </div>
           </div>
         </div>
       )}

@@ -1,11 +1,12 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getFeatureImportance } from "../api";
+import { getFeatureImportance, getNumericColumns, getCategoricalColumns, setTargetColumn as setTargetAPI } from "../api";
 import { AppContext } from "../context/AppContext";
 
 function FeatureImportance() {
   const {
     targetColumn,
+    setTargetColumn,
     featureImportance,
     setFeatureImportance,
   } = useContext(AppContext);
@@ -13,6 +14,8 @@ function FeatureImportance() {
   const [showTop10, setShowTop10] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [localTarget, setLocalTarget] = useState(targetColumn || "");
+  const [columns, setColumns] = useState([]);
   const navigate = useNavigate();
 
   const safeRender = (val) => {
@@ -21,8 +24,22 @@ function FeatureImportance() {
     return val.toString();
   };
 
+  useEffect(() => {
+    if (targetColumn) {
+      setLocalTarget(targetColumn);
+    } else {
+      Promise.all([getNumericColumns(), getCategoricalColumns()])
+        .then(([num, cat]) => {
+          setColumns([...(num.columns || []), ...(cat.columns || [])]);
+        })
+        .catch(() => {});
+    }
+  }, [targetColumn]);
+
   const handleClick = async () => {
-    if (!targetColumn) {
+    const targetToUse = targetColumn || localTarget;
+
+    if (!targetToUse) {
       setError("Please select a target column first.");
       return;
     }
@@ -31,7 +48,12 @@ function FeatureImportance() {
     setError("");
 
     try {
-      const res = await getFeatureImportance(targetColumn);
+      if (!targetColumn && localTarget) {
+        await setTargetAPI(localTarget);
+        setTargetColumn(localTarget);
+      }
+
+      const res = await getFeatureImportance(targetToUse);
       if (res.error) {
         throw new Error(res.error);
       }
@@ -81,10 +103,30 @@ function FeatureImportance() {
       <div className="card">
         <h3>Feature Importance Computation</h3>
         <p className="page-subtitle">
-          Target column: <strong>{targetColumn || <span style={{ color: "#ef4444" }}>Not Configured</span>}</strong>
+          Target column: <strong>{targetColumn || localTarget || <span style={{ color: "#ef4444" }}>Not Configured</span>}</strong>
         </p>
 
-        <button className="btn" onClick={handleClick} disabled={loading || !targetColumn}>
+        {!targetColumn && columns.length > 0 && (
+          <div style={{ marginBottom: "15px", display: "flex", gap: "10px", alignItems: "center" }}>
+            <select
+              className="input"
+              value={localTarget}
+              onChange={(e) => setLocalTarget(e.target.value)}
+              style={{ marginTop: 0, minWidth: "220px" }}
+            >
+              <option value="">-- Select Target Column --</option>
+              {columns.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <button
+          className="btn"
+          onClick={handleClick}
+          disabled={loading || (!targetColumn && !localTarget)}
+        >
           {loading ? "⏳ Computing Random Forest Gini Importance..." : "🚀 Compute Feature Importance"}
         </button>
       </div>
@@ -121,7 +163,7 @@ function FeatureImportance() {
           </div>
 
           <p style={{ marginBottom: "15px", color: "#64748b" }}>
-            🎯 Target Feature: <strong>{safeRender(targetColumn)}</strong>
+            🎯 Target Feature: <strong>{safeRender(targetColumn || localTarget)}</strong>
           </p>
 
           <div>

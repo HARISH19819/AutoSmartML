@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getFeatures, predictData } from "../api";
 
 function Predict() {
@@ -8,6 +9,7 @@ function Predict() {
   const [loading, setLoading] = useState(false);
   const [fetchingFeatures, setFetchingFeatures] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const safeRender = (val) => {
     if (val === null || val === undefined) return "—";
@@ -28,7 +30,7 @@ function Predict() {
         setError(res.error);
       } else {
         setFeatures(res);
-        // Initialize default empty values
+        // Initialize default values
         const initialForm = {};
         res.forEach((f) => {
           if (f.type === "categorical" && f.options && f.options.length > 0) {
@@ -50,7 +52,7 @@ function Predict() {
   const handleChange = (name, value, type) => {
     let finalValue = value;
     if (type === "numeric") {
-      finalValue = value === "" ? "" : Number(value);
+      finalValue = value === "" ? "" : (isNaN(Number(value)) ? value : Number(value));
     }
     setFormData((prev) => ({
       ...prev,
@@ -103,10 +105,17 @@ function Predict() {
 
   return (
     <div className="main">
-      <h2 className="page-title">🔮 Real-Time Model Inference</h2>
-      <p className="page-subtitle">
-        Input feature values to generate instant predictions through the trained AutoML pipeline
-      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px" }}>
+        <div>
+          <h2 className="page-title">🔮 Real-Time Model Inference</h2>
+          <p className="page-subtitle">
+            Input feature values to generate instant predictions through the trained AutoML pipeline
+          </p>
+        </div>
+        <button className="btn" onClick={() => navigate("/download")}>
+          📦 Download Model Bundle →
+        </button>
+      </div>
 
       {error && (
         <div className="card" style={{ background: "#fef2f2", color: "#dc2626", borderLeft: "4px solid #ef4444" }}>
@@ -119,10 +128,18 @@ function Predict() {
           <p>⏳ Loading feature schema from dataset...</p>
         </div>
       ) : features.length === 0 ? (
-        <div className="card">
+        <div className="card" style={{ borderLeft: "5px solid #f59e0b" }}>
           <p style={{ color: "#d97706" }}>
             ⚠️ No features available. Please upload a dataset and train an AutoML model first.
           </p>
+          <div style={{ marginTop: "12px", display: "flex", gap: "10px" }}>
+            <button className="btn" onClick={fetchFeatures}>
+              🔄 Retry Loading Features
+            </button>
+            <button className="btn" onClick={() => navigate("/train")} style={{ background: "#0284c7" }}>
+              🤖 Go to Model Training
+            </button>
+          </div>
         </div>
       ) : (
         <div className="card">

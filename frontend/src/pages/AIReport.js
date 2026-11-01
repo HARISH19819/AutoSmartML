@@ -1,12 +1,14 @@
 import React, { useContext, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 import { getApiBaseUrl } from "../api";
 
 function AIReport() {
-  const { datasetInfo } = useContext(AppContext);
+  const { datasetInfo, setDatasetInfo } = useContext(AppContext);
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const fetchAIReport = async () => {
     setLoading(true);
@@ -18,6 +20,16 @@ function AIReport() {
         throw new Error(data.error || "Failed to fetch AI insights");
       }
       setReport(data);
+      if (!datasetInfo && data.summary) {
+        setDatasetInfo({
+          rows: data.summary.rows,
+          columns: data.summary.columns,
+          numeric_columns: data.summary.numeric_columns || [],
+          categorical_columns: data.summary.categorical_columns || [],
+          missing_values: data.summary.missing_values || {},
+          sample_rows: []
+        });
+      }
     } catch (err) {
       setError(err.message || "Failed to contact AI service.");
     } finally {
@@ -26,37 +38,41 @@ function AIReport() {
   };
 
   useEffect(() => {
-    if (datasetInfo) {
-      fetchAIReport();
-    }
-  }, [datasetInfo]);
+    fetchAIReport();
+  }, []);
 
   return (
     <div className="main">
-      <h2 className="page-title">🧠 Gemini AI Dataset Intelligence</h2>
-      <p className="page-subtitle">
-        Deep automated exploratory analysis and data science recommendations powered by Google Gemini
-      </p>
-
-      {!datasetInfo && (
-        <div className="card">
-          <p style={{ color: "#d97706", fontWeight: "500" }}>
-            ⚠️ No dataset loaded. Please upload a CSV dataset to generate AI insights.
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "10px" }}>
+        <div>
+          <h2 className="page-title">🧠 Gemini AI Dataset Intelligence</h2>
+          <p className="page-subtitle">
+            Deep automated exploratory analysis and data science recommendations powered by Google Gemini
           </p>
         </div>
-      )}
+        <button className="btn" onClick={() => navigate("/clean")}>
+          🧹 Go to Data Cleaning →
+        </button>
+      </div>
 
-      {datasetInfo && (
-        <div className="card">
-          <button className="btn" onClick={fetchAIReport} disabled={loading}>
-            {loading ? "⏳ Analyzing with Gemini AI..." : "🔄 Refresh AI Insights"}
+      <div className="card" style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+        <button className="btn" onClick={fetchAIReport} disabled={loading}>
+          {loading ? "⏳ Analyzing with Gemini AI..." : "🔄 Refresh AI Insights"}
+        </button>
+      </div>
+
+      {error && (
+        <div className="card" style={{ background: "#fef2f2", color: "#991b1b", borderLeft: "4px solid #ef4444" }}>
+          <p>❌ {error}</p>
+          <button className="btn" onClick={() => navigate("/")} style={{ marginTop: "10px" }}>
+            📂 Upload a Dataset
           </button>
         </div>
       )}
 
-      {error && (
-        <div className="card" style={{ background: "#fef2f2", color: "#991b1b" }}>
-          <p>{error}</p>
+      {loading && !report && (
+        <div className="card" style={{ textAlign: "center", padding: "35px" }}>
+          <p>⏳ Synthesizing statistical distributions and generating AI executive summary...</p>
         </div>
       )}
 

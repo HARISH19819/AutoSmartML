@@ -13,3 +13,4 @@ backend/storage/images/*
 backend/storage/models/*
 !backend/storage/models/.gitkeep
 frontend/build
+

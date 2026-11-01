@@ -3,10 +3,10 @@ import { NavLink } from "react-router-dom";
 import { AppContext } from "../context/AppContext";
 
 function Sidebar() {
-  const { datasetInfo, targetColumn, trainedModel } = useContext(AppContext);
+  const { datasetInfo, targetColumn, trainedModel, resetAll } = useContext(AppContext);
 
   return (
-    <div className="sidebar">
+    <div className="sidebar" style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: "100vh" }}>
       <div style={{ marginBottom: "25px", borderBottom: "1px solid #334155", paddingBottom: "15px" }}>
         <h2 style={{ fontSize: "20px", color: "#f8fafc", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
           🚀 AutoSmartML
@@ -33,12 +33,12 @@ function Sidebar() {
         <div style={{ display: "flex", justifyContent: "space-between" }}>
           <span style={{ color: "#94a3b8" }}>Model:</span>
           <span style={{ color: trainedModel ? "#a855f7" : "#94a3b8", fontWeight: "bold" }}>
-            {trainedModel ? trainedModel.best_model : "Untrained"}
+            {trainedModel ? (trainedModel.best_model || "Trained") : "Untrained"}
           </span>
         </div>
       </div>
 
-      <nav style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+      <nav style={{ display: "flex", flexDirection: "column", gap: "2px", flex: 1 }}>
         <NavLink
           to="/"
           className={({ isActive }) =>
@@ -138,6 +138,32 @@ function Sidebar() {
           📦 Download Model
         </NavLink>
       </nav>
+
+      <div style={{ marginTop: "20px", paddingTop: "15px", borderTop: "1px solid #334155" }}>
+        <button
+          onClick={() => {
+            if (window.confirm("Reset active dataset and workspace state?")) {
+              resetAll();
+              window.location.href = "/";
+            }
+          }}
+          style={{
+            width: "100%",
+            background: "transparent",
+            border: "1px solid #475569",
+            color: "#94a3b8",
+            padding: "8px 12px",
+            borderRadius: "6px",
+            cursor: "pointer",
+            fontSize: "12px",
+            transition: "all 0.2s"
+          }}
+          onMouseOver={(e) => { e.target.style.color = "#ef4444"; e.target.style.borderColor = "#ef4444"; }}
+          onMouseOut={(e) => { e.target.style.color = "#94a3b8"; e.target.style.borderColor = "#475569"; }}
+        >
+          🔄 Reset Workspace
+        </button>
+      </div>
     </div>
   );
 }

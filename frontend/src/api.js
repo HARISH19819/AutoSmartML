@@ -56,9 +56,13 @@ export async function setTargetColumn(target) {
 /**
  * Clean dataset automatically
  */
-export async function cleanDataset() {
+export async function cleanDataset(target = null) {
   const response = await fetch(`${API_BASE}/clean-data`, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ target }),
   });
 
   const data = await response.json();

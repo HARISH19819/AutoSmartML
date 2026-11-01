@@ -1,11 +1,13 @@
 import os
 import logging
+import concurrent.futures
 from dotenv import load_dotenv
 
 load_dotenv()
 logger = logging.getLogger(__name__)
 
 _client = None
+
 
 def get_gemini_client():
     """
@@ -30,23 +32,37 @@ def get_gemini_client():
         return None
 
 
-def generate_gemini_content(prompt: str, model: str = "gemini-3.8-flash") -> str:
+def generate_gemini_content(prompt: str, model: str = "gemini-2.5-flash") -> str:
     """
-    Generate content with Gemini model.
-    Falls back gracefully if the API fails or quota is exhausted.
+    Generate content with Gemini model within a strict timeout.
+    Falls back gracefully to data science heuristics if the API fails, times out, or quota is exhausted.
     """
     client = get_gemini_client()
     if not client:
         return None
 
+    def _call_gemini():
+        try:
+            response = client.models.generate_content(
+                model=model,
+                contents=prompt,
+            )
+            if response and hasattr(response, "text") and response.text:
+                return response.text.strip()
+            return None
+        except Exception as err:
+            logger.warning(f"Gemini API request failed: {err}")
+            return None
+
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
     try:
-        response = client.models.generate_content(
-            model=model,
-            contents=prompt,
-        )
-        if response and hasattr(response, "text") and response.text:
-            return response.text.strip()
+        future = executor.submit(_call_gemini)
+        return future.result(timeout=2.0)
+    except concurrent.futures.TimeoutError:
+        logger.warning("Gemini API call timed out after 2.0s. Falling back to heuristic insights.")
         return None
     except Exception as e:
-        logger.warning(f"Gemini API request failed: {e}")
+        logger.warning(f"Gemini API execution error: {e}")
         return None
+    finally:
+        executor.shutdown(wait=False, cancel_futures=True)

@@ -40,6 +40,8 @@ backend/storage/models/*
 !backend/storage/models/.gitkeep
 backend/storage/charts/*
 !backend/storage/charts/.gitkeep
+backend/storage/*.json
+backend/storage/*.csv
 
 # Stray files
 backend/download-model

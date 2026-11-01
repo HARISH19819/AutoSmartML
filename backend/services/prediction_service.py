@@ -36,7 +36,7 @@ def make_prediction(input_data):
             raise ValueError(f"Could not load trained model from disk: {e}")
 
     if model is None or feature_cols is None or imputer is None:
-        raise ValueError("Model has not been trained yet. Please train a model first.")
+        raise ValueError("Model has not been trained yet. Please train an AutoML model first.")
 
     if not input_data or not isinstance(input_data, dict):
         raise ValueError("Invalid input data: expected a dictionary of feature values.")
@@ -50,11 +50,11 @@ def make_prediction(input_data):
     # Align columns with trained FEATURE_COLUMNS
     for col in feature_cols:
         if col not in df_encoded.columns:
-            df_encoded[col] = 0.0
+            df_encoded[col] = np.nan
 
     df_aligned = df_encoded[feature_cols]
 
-    # Impute missing values
+    # Impute missing values with trained imputer
     imputed_vals = imputer.transform(df_aligned)
     df_ready = pd.DataFrame(imputed_vals, columns=feature_cols)
 
