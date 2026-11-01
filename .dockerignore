@@ -1,0 +1,15 @@
+.git
+.gitignore
+node_modules
+venv
+__pycache__
+*.pyc
+*.env
+.env
+backend/storage/datasets/*
+!backend/storage/datasets/.gitkeep
+backend/storage/images/*
+!backend/storage/images/.gitkeep
+backend/storage/models/*
+!backend/storage/models/.gitkeep
+frontend/build

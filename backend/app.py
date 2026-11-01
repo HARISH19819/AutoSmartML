@@ -1,4 +1,8 @@
 import os
+import tempfile
+
+# Configure non-interactive backend & writable matplotlib cache for performance and thread safety
+os.environ.setdefault("MPLCONFIGDIR", os.path.join(tempfile.gettempdir(), "matplotlib"))
 import matplotlib
 matplotlib.use("Agg")
 
@@ -45,7 +49,13 @@ from services.prediction_service import make_prediction
 # -----------------------------
 
 app = Flask(__name__)
-CORS(app)
+
+# Security: Configurable CORS origins (defaults to wildcard for development)
+cors_origins = os.environ.get("CORS_ORIGINS", "*")
+CORS(app, resources={r"/*": {"origins": cors_origins}})
+
+# Security: Limit maximum upload size (default 32MB) to prevent Denial-of-Service attacks
+app.config["MAX_CONTENT_LENGTH"] = int(os.environ.get("MAX_CONTENT_LENGTH", 32 * 1024 * 1024))
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATASET_DIR = os.path.join(BASE_DIR, "storage", "datasets")
@@ -58,6 +68,27 @@ os.makedirs(MODEL_DIRECTORY, exist_ok=True)
 
 TARGET_COLUMN = None
 data_service = DataService()
+
+
+# -----------------------------
+# ERROR HANDLERS
+# -----------------------------
+
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    return jsonify({
+        "error": "Uploaded file exceeds the maximum allowed size (32MB). Please upload a smaller CSV."
+    }), 413
+
+
+@app.errorhandler(404)
+def resource_not_found(error):
+    return jsonify({"error": "The requested API endpoint does not exist."}), 404
+
+
+@app.errorhandler(500)
+def internal_server_error(error):
+    return jsonify({"error": "An internal server error occurred. Please verify dataset schema and try again."}), 500
 
 
 # -----------------------------
@@ -94,8 +125,8 @@ def upload_dataset():
         return jsonify({"error": "Empty filename."}), 400
 
     filename = secure_filename(file.filename)
-    if not filename.lower().endswith(".csv"):
-        return jsonify({"error": "Only CSV files are supported."}), 400
+    if not filename or not filename.lower().endswith(".csv"):
+        return jsonify({"error": "Only valid CSV (.csv) files are supported."}), 400
 
     filepath = os.path.join(DATASET_DIR, filename)
     try:
@@ -460,6 +491,8 @@ def download_model():
 @app.route("/storage/images/<filename>")
 def serve_image(filename):
     safe_name = secure_filename(filename)
+    if not safe_name.lower().endswith((".png", ".jpg", ".jpeg", ".svg")):
+        return jsonify({"error": "Invalid image format requested."}), 400
     return send_from_directory(IMAGE_DIR, safe_name)
 
 

@@ -2,8 +2,15 @@ import unittest
 import io
 import json
 import os
+import sys
+from unittest.mock import patch
 import pandas as pd
+
+# Add backend directory to sys.path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from app import app, set_dataframe, set_raw_dataframe
+
 
 class AutoSmartMLBackendTests(unittest.TestCase):
     @classmethod
@@ -41,7 +48,8 @@ class AutoSmartMLBackendTests(unittest.TestCase):
         self.assertEqual(data["rows"], 12)
         self.assertEqual(data["columns"], 4)
 
-    def test_03_dataset_info(self):
+    @patch("services.ai_service.generate_gemini_content", return_value="Mocked AI dataset insights.")
+    def test_03_dataset_info(self, mock_gemini):
         res = self.client.get("/dataset-info")
         self.assertEqual(res.status_code, 200)
         data = res.get_json()
@@ -57,14 +65,16 @@ class AutoSmartMLBackendTests(unittest.TestCase):
         data = res.get_json()
         self.assertEqual(data["target"], "purchased")
 
-    def test_05_clean_data(self):
+    @patch("services.ai_service.generate_gemini_content", return_value="Mocked cleaning recommendation.")
+    def test_05_clean_data(self, mock_gemini):
         res = self.client.post("/clean-data")
         self.assertEqual(res.status_code, 200)
         data = res.get_json()
         self.assertIn("report", data)
         self.assertIn("missing_values_filled", data["report"])
 
-    def test_06_eda_endpoints(self):
+    @patch("services.ai_service.generate_gemini_content", return_value="Mocked EDA visualization insight.")
+    def test_06_eda_endpoints(self, mock_gemini):
         res_num = self.client.get("/eda/numeric-columns")
         self.assertEqual(res_num.status_code, 200)
         num_cols = res_num.get_json()["columns"]
@@ -126,6 +136,18 @@ class AutoSmartMLBackendTests(unittest.TestCase):
         res = self.client.get("/download-model")
         self.assertEqual(res.status_code, 200)
         self.assertTrue(res.headers.get("Content-Disposition", "").startswith("attachment"))
+        res.close()
+
+    def test_14_max_upload_size_limit(self):
+        # Verify 413 error handler and MAX_CONTENT_LENGTH enforcement
+        large_data = b"x" * (33 * 1024 * 1024)
+        res = self.client.post(
+            "/upload-dataset",
+            data={"file": (io.BytesIO(large_data), "too_large.csv")},
+            content_type="multipart/form-data"
+        )
+        self.assertEqual(res.status_code, 413)
+
 
 if __name__ == "__main__":
     unittest.main()
