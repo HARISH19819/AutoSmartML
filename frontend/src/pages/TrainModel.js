@@ -133,9 +133,11 @@ function TrainModel() {
 
       {/* LOADING INDICATOR */}
       {loading && (
-        <div className="card" style={{ textAlign: "center", padding: "35px" }}>
-          <p style={{ fontSize: "16px", color: "#475569" }}>
-            🤖 Fitting Linear/Logistic Regression, Decision Trees, and Random Forests with Cross-Validation...
+        <div className="card" style={{ textAlign: "center", padding: "35px", background: "#f8fafc", border: "1px dashed #cbd5e1" }}>
+          <div style={{ fontSize: "36px", marginBottom: "12px" }}>⚙️</div>
+          <h4 style={{ color: "#1e293b", margin: "0 0 8px 0" }}>Benchmarking AutoML Algorithms...</h4>
+          <p style={{ fontSize: "14px", color: "#64748b", margin: 0 }}>
+            Training Decision Trees, Scaled Linear/Logistic Regression, and Random Forests (~1-3 seconds)
           </p>
         </div>
       )}

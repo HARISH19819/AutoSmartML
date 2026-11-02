@@ -1,3 +1,6 @@
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.dummy import DummyClassifier, DummyRegressor
 import os
 import joblib
 import numpy as np
@@ -97,8 +100,7 @@ def perform_train_test_split(df, target_column, test_size=0.2):
 def train_models(target_column=None):
     global SPLIT_DATA, BEST_MODEL_OBJECT, BEST_MODEL_NAME, PROBLEM_TYPE, FEATURE_COLUMNS, IMPUTER
 
-    if not SPLIT_DATA or "X_train" not in SPLIT_DATA:
-        # If train-test split hasn't been run yet, run it with default 0.2
+    if not SPLIT_DATA or "X_train" not in SPLIT_DATA or SPLIT_DATA.get("target") != target_column:
         df = get_dataframe()
         if df is None:
             return {"error": "Please upload a dataset first."}
@@ -137,17 +139,26 @@ def train_models(target_column=None):
     SPLIT_DATA["y_train"] = y_train
     SPLIT_DATA["y_test"] = y_test
 
+    # Sample down large training sets for sub-second cloud execution
+    if len(X_train) > 1200:
+        indices = np.random.RandomState(42).choice(len(X_train), 1200, replace=False)
+        X_train_fit = X_train.iloc[indices]
+        y_train_fit = y_train.iloc[indices]
+    else:
+        X_train_fit = X_train
+        y_train_fit = y_train
+
     if PROBLEM_TYPE == "classification":
         models = {
-            "Logistic Regression": LogisticRegression(max_iter=300, solver="lbfgs", random_state=42),
-            "Decision Tree": DecisionTreeClassifier(max_depth=10, random_state=42),
-            "Random Forest": RandomForestClassifier(n_estimators=30, max_depth=10, random_state=42)
+            "Logistic Regression": make_pipeline(StandardScaler(), LogisticRegression(max_iter=100, tol=1e-2, solver="lbfgs", random_state=42)),
+            "Decision Tree": DecisionTreeClassifier(max_depth=6, min_samples_split=4, random_state=42),
+            "Random Forest": RandomForestClassifier(n_estimators=20, max_depth=6, min_samples_split=4, random_state=42)
         }
     else:
         models = {
-            "Linear Regression": LinearRegression(),
-            "Decision Tree": DecisionTreeRegressor(max_depth=10, random_state=42),
-            "Random Forest": RandomForestRegressor(n_estimators=30, max_depth=10, random_state=42)
+            "Linear Regression": make_pipeline(StandardScaler(), LinearRegression()),
+            "Decision Tree": DecisionTreeRegressor(max_depth=6, min_samples_split=4, random_state=42),
+            "Random Forest": RandomForestRegressor(n_estimators=20, max_depth=6, min_samples_split=4, random_state=42)
         }
 
     scores = {}
@@ -157,7 +168,7 @@ def train_models(target_column=None):
 
     for name, model in models.items():
         try:
-            model.fit(X_train, y_train)
+            model.fit(X_train_fit, y_train_fit)
             preds = model.predict(X_test)
 
             if PROBLEM_TYPE == "classification":
@@ -174,6 +185,23 @@ def train_models(target_column=None):
 
         except Exception as e:
             scores[name] = "Error"
+            print(f"Error training {name}: {e}")
+
+    # Fallback to guaranteed baseline if all failed
+    if best_obj is None:
+        if PROBLEM_TYPE == "classification":
+            fallback = DummyClassifier(strategy="most_frequent")
+            fallback.fit(X_train_fit, y_train_fit)
+            best_obj = fallback
+            best_name = "Baseline Classifier"
+            best_score = float(accuracy_score(y_test, fallback.predict(X_test)))
+        else:
+            fallback = DummyRegressor(strategy="mean")
+            fallback.fit(X_train_fit, y_train_fit)
+            best_obj = fallback
+            best_name = "Baseline Regressor"
+            best_score = float(r2_score(y_test, fallback.predict(X_test)))
+        scores[best_name] = round(best_score, 4)
 
     BEST_MODEL_OBJECT = best_obj
     BEST_MODEL_NAME = best_name
@@ -216,10 +244,10 @@ def get_feature_importance(target_column):
     X_imputed = pd.DataFrame(imputer.fit_transform(X), columns=X.columns)
 
     if (not is_numeric_dtype(y)) or (y.nunique() <= 10):
-        model = RandomForestClassifier(n_estimators=50, random_state=42)
+        model = RandomForestClassifier(n_estimators=20, max_depth=6, random_state=42)
         y = y.astype(str)
     else:
-        model = RandomForestRegressor(n_estimators=50, random_state=42)
+        model = RandomForestRegressor(n_estimators=20, max_depth=6, random_state=42)
         y = pd.to_numeric(y, errors="coerce").fillna(0)
 
     model.fit(X_imputed, y)
