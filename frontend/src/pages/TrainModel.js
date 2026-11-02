@@ -53,7 +53,12 @@ function TrainModel() {
       setTrainedModel(res);
     } catch (err) {
       console.error(err);
-      setError(err.message || "Model training failed.");
+      const isFetchErr = err.message && (err.message.includes("Failed to fetch") || err.message.includes("NetworkError"));
+      setError(
+        isFetchErr
+          ? "Unable to reach backend service (Render may be starting from sleep mode). Please wait 15 seconds and click Train again."
+          : err.message || "Model training failed."
+      );
     } finally {
       setLoading(false);
     }

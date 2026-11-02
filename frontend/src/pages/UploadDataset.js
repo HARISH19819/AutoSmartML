@@ -4,7 +4,7 @@ import { uploadDataset } from "../api";
 import { AppContext } from "../context/AppContext";
 
 function UploadDataset() {
-  const { setDatasetInfo, setTargetColumn } = useContext(AppContext);
+  const { datasetInfo, setDatasetInfo, setTargetColumn } = useContext(AppContext);
   const navigate = useNavigate();
 
   const [file, setFile] = useState(null);
@@ -55,6 +55,37 @@ function UploadDataset() {
         <p className="page-subtitle">
           Upload your CSV dataset to start the AutoSmartML automated intelligence pipeline
         </p>
+
+                {datasetInfo && datasetInfo.rows > 0 && (
+          <div className="card" style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", padding: "18px", marginBottom: "20px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+              <div>
+                <h4 style={{ color: "#166534", margin: "0 0 6px 0", fontSize: "16px" }}>
+                  ✅ Active Dataset Loaded ({datasetInfo.rows.toLocaleString()} rows, {datasetInfo.columns} columns)
+                </h4>
+                <p style={{ color: "#15803d", margin: 0, fontSize: "13px" }}>
+                  Your dataset is saved in workspace memory and ready for EDA, cleaning, and model training.
+                </p>
+              </div>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <button
+                  className="btn"
+                  onClick={() => navigate("/dataset")}
+                  style={{ background: "#0284c7", fontSize: "13px", padding: "8px 16px" }}
+                >
+                  📊 Explore Overview →
+                </button>
+                <button
+                  className="btn"
+                  onClick={() => navigate("/train")}
+                  style={{ background: "#8b5cf6", fontSize: "13px", padding: "8px 16px" }}
+                >
+                  🤖 Train Models →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Upload Box */}
         <div className="upload-box">

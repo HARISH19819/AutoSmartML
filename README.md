@@ -6,9 +6,14 @@
   <b>Democratizing Machine Learning with Intelligent EDA, Automated Preprocessing, Multi-Model Benchmarking, and Google Gemini AI Insights.</b>
 </p>
 
-[![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+<!-- Badges -->
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Frontend%20Live-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://auto-smart-ml-skem.vercel.app)
+[![Render Backend](https://img.shields.io/badge/Render-Backend%20API%20Live-46E3B7?style=for-the-badge&logo=render&logoColor=black)](https://autosmartml-backend.onrender.com)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/HARISH19819/AutoSmartML.git)
+<br />
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-3.0+-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![Scikit-Learn](https://img.shields.io/badge/scikit--learn-1.3+-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
 [![Google Gemini](https://img.shields.io/badge/Google%20Gemini-Generative%20AI-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
 [![Docker Ready](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
@@ -16,13 +21,22 @@
 
 <br />
 
-[Explore Features](#-interactive-features) •
-[System Architecture](#-system-architecture) •
-[Quick Start](#-quick-start) •
-[Docker Deployment](#-docker--production-deployment) •
-[API Reference](#-rest-api-reference) •
-[Security & Sustainability](#-security--sustainability-audit) •
-[GitHub Repo](https://github.com/HARISH19819/AutoSmartML.git)
+### 🌐 Live Production Deployments
+| Tier | Service | Live URL | Hosting Platform |
+| :--- | :--- | :--- | :--- |
+| **Frontend** | React 19 Interactive Studio SPA | [auto-smart-ml-skem.vercel.app](https://auto-smart-ml-skem.vercel.app) | **Vercel** |
+| **Backend** | Python Flask + Gunicorn ML REST API | [autosmartml-backend.onrender.com](https://autosmartml-backend.onrender.com) | **Render** |
+| **Source** | Full-Stack Git Repository | [HARISH19819/AutoSmartML](https://github.com/HARISH19819/AutoSmartML.git) | **GitHub** |
+
+<br />
+
+[Interactive Pipeline](#-end-to-end-pipeline-workflow) •
+[Features](#-interactive-features) •
+[Tech Stack](#-technology-stack) •
+[Architecture](#-system-architecture) •
+[Quick Start](#-quick-start-local-development) •
+[Docker Deployment](#-docker--cloud-deployment) •
+[API Reference](#-rest-api-reference)
 
 ---
 
@@ -30,9 +44,46 @@
 
 ## 🌟 Overview
 
-**AutoSmartML** is a modern, full-stack, enterprise-grade Automated Machine Learning (AutoML) platform. It guides data scientists, analysts, and developers through every stage of the machine learning lifecycle—from raw CSV ingestion to automated exploratory data analysis, dataset cleaning, algorithm tournament benchmarking, live real-time inference, and downloadable production models.
+**AutoSmartML** is an enterprise-grade Automated Machine Learning (AutoML) web studio designed to accelerate and simplify the end-to-end data science lifecycle. 
 
-Powered by **Google Gemini AI**, AutoSmartML automatically translates complex statistical distributions and correlation matrices into plain-English, actionable business intelligence.
+From raw CSV ingestion to automated feature distribution profiling, missing value imputation, model tournament benchmarking, ROC/confusion matrix diagnostics, and real-time interactive inference, AutoSmartML automates the repetitive complexities of machine learning.
+
+Integrated with **Google Gemini AI**, AutoSmartML bridges statistical machine learning and human decision-making by automatically synthesizing complex metrics, distribution anomalies, and correlation matrices into plain-English business recommendations.
+
+---
+
+## 🔄 End-to-End Pipeline Workflow
+
+```mermaid
+flowchart LR
+    A["📂 1. Ingestion<br/>CSV Parsing & Schema"] --> B["🎯 2. Profiling<br/>Target Selection & Stats"]
+    B --> C["🧹 3. Preprocessing<br/>Imputation & Encoding"]
+    C --> D["📈 4. EDA Visuals<br/>KDE, Boxplots, Heatmaps"]
+    D --> E["✂️ 5. Train Split<br/>Stratified Train/Test Split"]
+    E --> F["🤖 6. AutoML Tournament<br/>Regression & Classification"]
+    F --> G["📊 7. Diagnostics<br/>Metrics, Feature Importance"]
+    G --> H["🚀 8. Production<br/>Live Inference & .joblib"]
+
+    style A fill:#3b82f6,stroke:#1d4ed8,stroke-width:2px,color:#fff
+    style B fill:#6366f1,stroke:#4338ca,stroke-width:2px,color:#fff
+    style C fill:#0ea5e9,stroke:#0284c7,stroke-width:2px,color:#fff
+    style D fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff
+    style E fill:#f59e0b,stroke:#b45309,stroke-width:2px,color:#fff
+    style F fill:#8b5cf6,stroke:#6d28d9,stroke-width:2px,color:#fff
+    style G fill:#ec4899,stroke:#be185d,stroke-width:2px,color:#fff
+    style H fill:#22c55e,stroke:#15803d,stroke-width:2px,color:#fff
+```
+
+### Detailed Pipeline Stages
+
+1. **Dataset Ingestion**: Drag-and-drop CSV upload with 32MB streaming protection, row/column dimensions, and null sparsity detection.
+2. **Schema & Target Selection**: Automatic column categorization into numerical and categorical features; configurable ML target column.
+3. **Automated Preprocessing**: Deduplication, robust median imputation for numerical data, mode imputation for categorical data, and one-hot encoding.
+4. **Exploratory Data Analysis (EDA)**: Interactive Kernel Density Estimation (KDE) histograms, outlier boxplots, and Pearson correlation heatmaps.
+5. **Train-Test Splitting**: Automated data partitioning with customizable test ratios (5%–50%) and aligned feature schemas.
+6. **AutoML Model Tournament**: Simultaneous training and benchmarking across algorithms (Linear/Logistic Regression, Decision Trees, Random Forests) with cloud-optimized hyperparameter sweeps.
+7. **Comprehensive Evaluation**: R², RMSE, MAE, and Adjusted R² for regression; Accuracy, Precision, Recall, Weighted F1, Confusion Matrix, and ROC/AUC curves for classification.
+8. **Production Deployment**: Real-time interactive inference form with dynamic form inputs and one-click production `.joblib` model bundle download.
 
 ---
 
@@ -43,55 +94,57 @@ Powered by **Google Gemini AI**, AutoSmartML automatically translates complex st
     <td width="50%">
       <h3>📂 1. Dataset Ingestion & Profiling</h3>
       <ul>
-        <li><b>Smart Ingestion</b>: Automatic CSV schema parsing and statistical profiling.</li>
-        <li><b>Column Type Inference</b>: Automatic separation into numerical and categorical dimensions.</li>
-        <li><b>Null & Missing Diagnostics</b>: Instant column-wise sparsity reporting.</li>
+        <li><b>Smart Ingestion</b>: Automatic CSV schema parsing, dimension checking, and data preview.</li>
+        <li><b>Type Inference</b>: Automatically separates numerical and categorical dimensions.</li>
+        <li><b>Null Diagnostics</b>: Instant column-wise sparsity reporting.</li>
+        <li><b>State Synchronization</b>: Active dataset persists seamlessly across page refreshes and browser sessions.</li>
       </ul>
     </td>
     <td width="50%">
       <h3>🧹 2. Automated Preprocessing</h3>
       <ul>
-        <li><b>Deduplication</b>: Automatic detection and removal of redundant rows.</li>
-        <li><b>Type-Safe Imputation</b>: Median imputation for numeric features; Mode for categorical.</li>
-        <li><b>Categorical Encoding</b>: Deterministic category code transformation.</li>
+        <li><b>Deduplication</b>: Detects and drops duplicate rows automatically.</li>
+        <li><b>Type-Safe Imputation</b>: Median imputation for continuous variables; Mode for discrete categories.</li>
+        <li><b>Encoding</b>: Dummy feature generation preserving categorical integrity.</li>
+        <li><b>Target Isolation</b>: Protects configured target features from unintended transformations.</li>
       </ul>
     </td>
   </tr>
   <tr>
     <td width="50%">
-      <h3>📊 3. Exploratory Data Analysis (EDA)</h3>
+      <h3>📈 3. Exploratory Data Analysis (EDA)</h3>
       <ul>
-        <li><b>Distribution Histograms</b>: High-res KDE (Kernel Density Estimation) charts.</li>
-        <li><b>Outlier Boxplots</b>: Interquartile Range (IQR) boundary anomaly visualization.</li>
-        <li><b>Frequency Distributions</b>: Categorical frequency count bars.</li>
-        <li><b>Correlation Heatmaps</b>: Multi-feature Pearson correlation matrix.</li>
+        <li><b>Distribution Histograms</b>: High-resolution KDE curves and distribution bins.</li>
+        <li><b>Outlier Boxplots</b>: IQR anomaly boundary detection.</li>
+        <li><b>Frequency Distributions</b>: Categorical counts and frequencies.</li>
+        <li><b>Correlation Heatmaps</b>: Multi-feature Pearson correlation matrices.</li>
       </ul>
     </td>
     <td width="50%">
-      <h3>🧠 4. Gemini AI Intelligence</h3>
+      <h3>🤖 4. AutoML Model Tournament</h3>
       <ul>
-        <li><b>Executive Summaries</b>: Instant natural language dataset health checks.</li>
-        <li><b>Chart Interpretation</b>: Contextual explanations for every distribution and correlation.</li>
-        <li><b>Resilient Fallbacks</b>: Offline mathematical heuristic insights if API key is absent.</li>
+        <li><b>Problem Type Auto-Detection</b>: Dynamically identifies regression vs. binary vs. multiclass classification.</li>
+        <li><b>Multi-Model Benchmarking</b>: Linear/Logistic Regression, Decision Trees, and Random Forests.</li>
+        <li><b>Metric Leaderboard</b>: R² for regression; Accuracy and F1-Score for classification.</li>
+        <li><b>Cloud Speed Optimized</b>: Fast-converging solvers for rapid execution on free cloud hosting.</li>
       </ul>
     </td>
   </tr>
   <tr>
     <td width="50%">
-      <h3>✂️ 5. Partitioning & Leaderboard</h3>
+      <h3>🔥 5. Feature Importance & Diagnostics</h3>
       <ul>
-        <li><b>Train-Test Splitter</b>: Configurable validation ratio with random seeding.</li>
-        <li><b>Auto-Problem Detection</b>: Automatic Classification vs. Regression identification.</li>
-        <li><b>Multi-Model Tournament</b>: Benchmarks Logistic/Linear Regression, Decision Trees, and Random Forests.</li>
+        <li><b>Gini Importance</b>: Quantifies the predictive power of each input feature.</li>
+        <li><b>Model Diagnostics</b>: Confusion matrices and ROC curves with AUC calculation.</li>
+        <li><b>Overfitting Protection</b>: Separate train vs. test evaluation splits.</li>
       </ul>
     </td>
     <td width="50%">
-      <h3>🔮 6. Diagnostics & Inference</h3>
+      <h3>🔮 6. Real-Time Inference & Export</h3>
       <ul>
-        <li><b>Comprehensive Metrics</b>: Accuracy, Precision, Recall, F1, RMSE, MAE, R², Adj-R².</li>
-        <li><b>ROC & Confusion Matrix</b>: Binary ROC AUC curves and class attribution matrices.</li>
-        <li><b>Dynamic Live Predictor</b>: Auto-generated form for real-time model inference.</li>
-        <li><b>One-Click Export</b>: Download serialized <code>.joblib</code> bundle.</li>
+        <li><b>Dynamic Form Generation</b>: Inference inputs dynamically match training feature types.</li>
+        <li><b>Instant Predictions</b>: Real-time single-sample inference via active champion model.</li>
+        <li><b>Production Bundle</b>: Download serialized <code>.joblib</code> bundle containing the fitted model, imputer, and feature column map.</li>
       </ul>
     </td>
   </tr>
@@ -99,278 +152,204 @@ Powered by **Google Gemini AI**, AutoSmartML automatically translates complex st
 
 ---
 
-## 🏗️ System Architecture
+## 🛠️ Technology Stack
+
+<div align="center">
+
+| Domain | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Frontend UI** | [React 19](https://react.dev/) | Reactive Single-Page Application (SPA) architecture |
+| **Routing** | [React Router 7](https://reactrouter.com/) | Client-side routing with SPA rewrite fallbacks |
+| **Data Viz** | [Chart.js 4](https://www.chartjs.org/) & [Recharts 3](https://recharts.org/) | Interactive responsive charting and metric visualization |
+| **Backend API** | [Flask 3](https://flask.palletsprojects.com/) | Lightweight, modular Python REST API microservice |
+| **WSGI Server** | [Gunicorn 21](https://gunicorn.org/) | Multi-worker production HTTP server |
+| **Machine Learning**| [scikit-learn 1.3+](https://scikit-learn.org/) | Preprocessing, model training, benchmarking, and metrics |
+| **Data Science** | [Pandas 2](https://pandas.pydata.org/) & [NumPy 1.24+](https://numpy.org/) | Tabular data manipulation and numerical computation |
+| **Data Visuals** | [Matplotlib 3.7](https://matplotlib.org/) & [Seaborn 0.12](https://seaborn.pydata.org/) | High-resolution statistical chart rendering |
+| **Generative AI** | [Google Gemini API](https://ai.google.dev/) | Automated dataset insights, cleaning summaries, and chart analysis |
+| **Serialization**| [Joblib 1.3+](https://joblib.readthedocs.io/) | Production model artifact persistence |
+| **Web Server** | [Nginx Alpine](https://nginx.org/) | Production container web server for static assets |
+| **Orchestration**| [Docker](https://docker.com) & [Docker Compose](https://docs.docker.com/compose/) | Containerized multi-service deployment |
+| **Cloud Hosting** | [Vercel](https://vercel.com) & [Render](https://render.com) | Zero-cost continuous deployment from GitHub |
+
+</div>
+
+---
+
+## 📐 System Architecture
 
 ```mermaid
-flowchart TD
-    subgraph Client["🖥️ Frontend (React 19 + Modern UI)"]
-        UI["React SPA Dashboard"]
-        State["AppContext (Global State)"]
-        Charts["Chart.js & Recharts Visualizer"]
-        UI --> State
-        UI --> Charts
+graph TD
+    User([🌐 Web Client / Browser]) -->|HTTPS| Vercel[☁️ Vercel Edge CDN<br/>React 19 SPA]
+    Vercel -->|REST API Calls| Render[☁️ Render Cloud Web Service<br/>Gunicorn + Flask 3.0]
+    
+    subgraph "AutoSmartML Engine"
+        Render --> DataSvc[Data & Persistence Service<br/>Pandas, Storage Sync]
+        Render --> CleanSvc[Data Cleaning & Imputation<br/>Deduplication, Mode/Median Imputer]
+        Render --> EDASvc[EDA Visualization Service<br/>Matplotlib, Seaborn, KDE, Boxplot]
+        Render --> MLService[AutoML Tournament Engine<br/>scikit-learn, Cross-Validation]
+        Render --> PredictSvc[Inference Engine<br/>Joblib Pipeline, Schema Alignment]
+        Render --> AISvc[Google Gemini AI Service<br/>2.0s Async Timeout with Fallback]
     end
 
-    subgraph Server["⚡ Backend Engine (Flask REST API)"]
-        API["REST API Router (app.py)"]
-        DataSvc["Data Service (Ingestion & Profiling)"]
-        CleanSvc["Cleaning Service (Imputation & Encoding)"]
-        EDASvc["EDA Engine (Matplotlib / Seaborn)"]
-        ModelSvc["Model Service (Scikit-Learn AutoML)"]
-        PredSvc["Prediction Service (Live Inference)"]
-        AISvc["AI Service (Google Gemini / Heuristics)"]
-
-        API --> DataSvc
-        API --> CleanSvc
-        API --> EDASvc
-        API --> ModelSvc
-        API --> PredSvc
-        API --> AISvc
-    end
-
-    subgraph Storage["💾 Persistence & Artifacts"]
-        Datasets[("Storage / Datasets")]
-        Plots[("Storage / Images")]
-        Models[("Storage / Models (best_model.joblib)")]
-    end
-
-    Client <==>|"REST / JSON & Multipart"| Server
-    DataSvc --> Datasets
-    EDASvc --> Plots
-    ModelSvc --> Models
-    PredSvc --> Models
+    AISvc -.->|External API| GeminiAPI[Google Gemini Flash API]
+    MLService --> Storage[(Active State & Disk Cache<br/>active_dataset.csv, best_model.joblib)]
 ```
 
 ---
 
-## 📁 Repository Structure
+## ⚡ Quick Start: Local Development
 
-```
-AutoSmartML/
-├── .github/                       # CI/CD workflows and repository templates
-├── .dockerignore                  # Docker build exclusions
-├── .gitignore                     # Git hygiene & secret protections
-├── docker-compose.yml             # Unified multi-container orchestration
-├── README.md                      # Comprehensive project documentation
-├── backend/
-│   ├── .env.example               # Backend environment template
-│   ├── Dockerfile                 # Production backend container recipe
-│   ├── app.py                     # Flask REST API entry point
-│   ├── requirements.txt           # Python dependency specification
-│   ├── test_suite.py              # Automated unit and integration tests
-│   ├── ai/
-│   │   └── gemini_client.py       # Google GenAI client with heuristic fallback
-│   ├── services/
-│   │   ├── ai_service.py          # AI prompt engineering & statistical heuristics
-│   │   ├── cleaning_service.py    # Automated cleaning, imputation & encoding
-│   │   ├── data_service.py        # Dataset analysis & state management
-│   │   ├── eda_service.py         # Matplotlib & Seaborn visualization pipeline
-│   │   ├── model_service.py       # Scikit-learn training, benchmarking & serialization
-│   │   └── prediction_service.py  # Real-time feature transformation & inference
-│   ├── storage/                   # File storage for datasets, plots, and models
-│   └── utils/                     # Formatting, splitting, and encoding helpers
-└── frontend/
-    ├── .env.example               # Frontend environment template
-    ├── Dockerfile                 # Production multi-stage React build container
-    ├── nginx.conf                 # Production Nginx reverse-proxy configuration
-    ├── package.json               # React dependencies and scripts
-    ├── public/                    # Static assets and index.html
-    └── src/
-        ├── api.js                 # Centralized API service layer
-        ├── App.js                 # Route definitions and layout wrapper
-        ├── context/AppContext.js  # Global React state management
-        ├── layout/                # Sidebar and MainLayout components
-        ├── pages/                 # 10 dedicated AutoML workflow views
-        └── styles/                # CSS design system and variables
-```
-
----
-
-## ⚡ Quick Start
-
-### 📋 Prerequisites
-- **Python**: 3.10 or 3.11
-- **Node.js**: 18+ and `npm`
+### Prerequisites
+- **Python 3.10+** (Tested on Python 3.11)
+- **Node.js 18+** or **20+**
 - **Git**
 
----
-
-### 1️⃣ Clone the Repository
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/HARISH19819/AutoSmartML.git
 cd AutoSmartML
 ```
 
----
-
-### 2️⃣ Backend Setup
+### 2. Configure Backend
 ```bash
 cd backend
 
 # Create and activate virtual environment
 python -m venv venv
-
-# Windows
+# On Windows:
 venv\Scripts\activate
-
-# macOS / Linux
+# On Linux/macOS:
 source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure environment
-cp .env.example .env
-# (Optional) Add your Google Gemini API key to .env:
-# GEMINI_API_KEY=your_key_here
+# (Optional) Add your Google Gemini API Key
+echo GEMINI_API_KEY=your_key_here > .env
 
-# Run automated tests
-python -m unittest test_suite.py
-
-# Launch development server
+# Run the Flask backend server
 python app.py
 ```
-> 🌐 The backend API runs at **`http://127.0.0.1:5000`**.
+> The backend server starts at **`http://127.0.0.1:5000`**.
 
----
-
-### 3️⃣ Frontend Setup
+### 3. Configure Frontend
 ```bash
-cd ../frontend
+# In a new terminal window:
+cd frontend
 
-# Install dependencies
+# Install Node dependencies
 npm install
 
-# Start React development server
+# Start the React development server
 npm start
 ```
-> 💻 The frontend web dashboard will open automatically at **`http://localhost:3000`**.
+> The React dashboard opens automatically at **`http://localhost:3000`**.
 
 ---
 
-## 🐳 Docker & Production Deployment
+## 🐳 Docker & Cloud Deployment
 
-AutoSmartML is 100% containerized with production-ready Docker configurations.
+### Multi-Container Deployment with Docker Compose
 
-### One-Command Launch (Docker Compose)
+AutoSmartML includes ready-to-run containerization configs for single-command production deployment:
+
 ```bash
-docker-compose up --build
-```
-This automatically compiles:
-- **Backend**: Container running Flask via multi-worker **Gunicorn** on port `5000`.
-- **Frontend**: Multi-stage production build served via high-performance **Nginx** on port `3000`.
+# Build and run backend (port 5000) and frontend (port 3000)
+docker compose up -d --build
 
-To stop the containers:
-```bash
-docker-compose down
+# Verify running containers
+docker compose ps
 ```
+
+- **Frontend Application**: `http://localhost:3000`
+- **Backend API**: `http://localhost:5000/health`
 
 ---
 
-## 🔒 Security & Sustainability Audit
+### Cloud Deployment (Free Tier: Render + Vercel)
 
-| Audit Dimension | Status | Implementation Details |
-|:---|:---:|:---|
-| **Zero Secret Leaks** | 🟢 PASSED | `.env` and `*.env` strictly ignored by `.gitignore` and `.dockerignore`. Zero secrets in git history. |
-| **DoS Protection** | 🟢 PASSED | Strict `MAX_CONTENT_LENGTH = 32MB` enforced with clean HTTP 413 error handling. |
-| **Path Traversal Defense** | 🟢 PASSED | Filenames sanitized via `secure_filename()`; static downloads verified with strict extension whitelists. |
-| **CORS Isolation** | 🟢 PASSED | Configurable `CORS_ORIGINS` environment variable for zero-trust production domains. |
-| **Thread & Memory Safety** | 🟢 PASSED | Matplotlib configured in non-interactive `Agg` mode with automated `plt.close("all")` cleanup in `finally` blocks. |
-| **Resilient AI Pipeline** | 🟢 PASSED | Dual-engine architecture: Instant automatic fallback to statistical heuristic algorithms when offline. |
-| **Clean Architecture** | 🟢 PASSED | Decoupled REST services with isolated responsibilities and sub-second automated test suite (14/14 tests pass). |
+#### 1. Backend on Render (Web Service)
+1. Fork or push this repository to GitHub.
+2. Sign in to [Render](https://render.com) and create a **New Web Service**.
+3. Select your `AutoSmartML` repository.
+4. Set:
+   - **Root Directory**: `backend`
+   - **Environment**: `Python 3`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 app:app`
+   - **Instance Type**: `Free`
+5. Add Environment Variables:
+   - `FLASK_DEBUG`: `False`
+   - `CORS_ORIGINS`: `*`
+   - `GEMINI_API_KEY`: *(Optional) Your Gemini Key*
+6. Click **Deploy Web Service** and copy your live backend URL (e.g. `https://autosmartml-backend.onrender.com`).
+
+#### 2. Frontend on Vercel
+1. Sign in to [Vercel](https://vercel.com) and click **Add New...** > **Project**.
+2. Select `AutoSmartML`.
+3. In Project Settings:
+   - **Root Directory**: Edit and set to **`frontend`**
+   - **Framework**: `Create React App`
+4. In **Environment Variables**:
+   - **Key**: `REACT_APP_API_URL`
+   - **Value**: `https://autosmartml-backend.onrender.com` *(your Render backend URL)*
+5. Click **Deploy**.
 
 ---
 
 ## 📡 REST API Reference
 
-<details>
-<summary><b>Click to expand full API specification</b></summary>
-<br>
-
-| Endpoint | Method | Description | Payload / Parameters |
-|:---|:---:|:---|:---|
-| `/` | `GET` | Service status and version check | None |
-| `/health` | `GET` | Container health probe | None |
-| `/upload-dataset` | `POST` | Ingest CSV dataset and generate statistical profile | `multipart/form-data` with `file` |
-| `/dataset-info` | `GET` | Retrieve summary and Gemini AI insights | None |
-| `/set-target` | `POST` | Select target prediction column | `{"target": "column_name"}` |
-| `/clean-data` | `POST` | Execute deduplication, imputation & encoding | None |
-| `/eda/numeric-columns` | `GET` | List numeric features | None |
-| `/eda/categorical-columns`| `GET` | List categorical features | None |
-| `/eda/histogram` | `POST` | Generate distribution KDE plot + AI insight | `{"column": "feature_name"}` |
-| `/eda/boxplot` | `POST` | Generate outlier detection boxplot + AI insight | `{"column": "feature_name"}` |
-| `/eda/countplot` | `POST` | Generate category frequency plot + AI insight | `{"column": "feature_name"}` |
-| `/eda/heatmap` | `GET` | Generate multi-feature Pearson correlation heatmap | None |
-| `/split` | `POST` | Partition dataset into train/test splits | `{"target": "col", "test_size": 0.2}` |
-| `/recommend_models` | `GET` | Algorithmic recommendations for target type | `?target=column_name` |
-| `/train_models` | `POST` | Run AutoML tournament benchmark | `{"target": "column_name"}` |
-| `/feature_importance` | `POST` | Feature attribution ranking | `{"target": "column_name"}` |
-| `/evaluate_model` | `GET`/`POST` | Diagnostics (Metrics, Confusion Matrix, ROC) | None |
-| `/get_features` | `GET` | Form schema for dynamic prediction inputs | None |
-| `/predict` | `POST` | Execute real-time inference | `{"feature1": val1, "feature2": val2}` |
-| `/download-model` | `GET` | Download serialized `best_model.joblib` bundle | None |
-
-</details>
+| Endpoint | Method | Description | Payload / Query |
+| :--- | :---: | :--- | :--- |
+| `/health` | `GET` | Service health status check | None |
+| `/pipeline-state` | `GET` | Fetches active dataset dimensions, target, and model status | None |
+| `/upload-dataset` | `POST` | Uploads and profiles CSV dataset | `multipart/form-data` (`file`) |
+| `/dataset-info` | `GET` | Returns summary statistics, sample rows, and AI insights | None |
+| `/set-target` | `POST` | Sets the supervised ML target feature | `{"target": "column_name"}` |
+| `/clean-data` | `POST` | Executes automated deduplication and median/mode imputation | `{"target": "column_name"}` |
+| `/eda/numeric-columns` | `GET` | Lists all detected numeric columns | None |
+| `/eda/categorical-columns`| `GET` | Lists all detected categorical columns | None |
+| `/eda/histogram` | `GET` | Generates KDE distribution histogram | `?column=col_name` |
+| `/eda/boxplot` | `GET` | Generates outlier boxplot | `?column=col_name` |
+| `/eda/countplot` | `GET` | Generates categorical frequency counts | `?column=col_name` |
+| `/eda/heatmap` | `GET` | Generates Pearson correlation heatmap | None |
+| `/split` | `POST` | Splits active dataset into train/test partitions | `{"target": "col", "test_size": 0.2}` |
+| `/recommend_models` | `GET` | AI-recommended algorithms based on schema | None |
+| `/train_models` | `POST` | Trains and benchmarks all candidate ML models | `{"target": "col"}` |
+| `/feature_importance` | `POST` | Calculates Gini predictive importance per feature | `{"target": "col"}` |
+| `/evaluate_model` | `GET` | Returns metrics, confusion matrix, and ROC curve | None |
+| `/get_features` | `GET` | Schema definitions for dynamic inference form | None |
+| `/predict` | `POST` | Live real-time single-sample inference | `{"features": {"col1": val, ...}}` |
+| `/download-model` | `GET` | Downloads serialized `best_model.joblib` | None |
 
 ---
 
-## 🐍 Using Exported Models in Python
+## 🔒 Security & Sustainability Audit Highlights
 
-After downloading `best_model.joblib`, you can execute predictions anywhere in Python with zero overhead:
-
-```python
-import joblib
-import pandas as pd
-
-# 1. Load the serialized AutoSmartML bundle
-bundle = joblib.load("best_model.joblib")
-model = bundle["model"]
-feature_columns = bundle["feature_columns"]
-imputer = bundle["imputer"]
-problem_type = bundle["problem_type"]
-
-print(f"Loaded: {bundle['model_name']} ({problem_type})")
-
-# 2. Prepare new raw input data
-raw_data = {
-    "age": 32,
-    "salary": 72000,
-    "department": "Engineering"
-}
-df = pd.DataFrame([raw_data])
-
-# 3. Transform categoricals & align features
-df_encoded = pd.get_dummies(df, drop_first=False)
-for col in feature_columns:
-    if col not in df_encoded.columns:
-        df_encoded[col] = 0.0
-
-df_aligned = df_encoded[feature_columns]
-
-# 4. Impute & Predict
-df_imputed = imputer.transform(df_aligned)
-prediction = model.predict(df_imputed)
-
-print("🎯 Prediction Result:", prediction[0])
-```
+- **DoS Mitigation**: Enforced `MAX_CONTENT_LENGTH = 32MB` with custom HTTP 413 handling to reject unbounded file streams.
+- **Configurable CORS**: Dynamic origin whitelisting via `CORS_ORIGINS` with guaranteed headers across all error responses.
+- **Path Traversal Protection**: All file paths validated and sanitized via `werkzeug.utils.secure_filename`.
+- **Thread Safety**: Matplotlib configured with `Agg` backend and thread-safe temp directory (`MPLCONFIGDIR`) preventing concurrency deadlocks.
+- **Non-Blocking AI**: Google Gemini calls encapsulated with a 2.0-second async timeout and automatic fallback to statistical summaries.
+- **Memory Leak Prevention**: Explicit `matplotlib.pyplot.close("all")` called in `finally` blocks after every chart generation.
+- **Robust State Persistence**: Dual-layer state sync across browser `localStorage` and disk-backed `active_dataset.csv` guarantees seamless workflow across page reloads.
 
 ---
 
-## 🤝 Contributing
+## 👨‍💻 Author & Contributing
 
-Contributions, issues, and feature requests are welcome!
+Created by **[HARISH19819](https://github.com/HARISH19819)**.
+
+Contributions, feature requests, and suggestions are welcome!
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'feat: add amazing feature'`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
 ---
 
-## 📄 License
-
-Distributed under the **MIT License**. See `LICENSE` for more information.
-
 <div align="center">
-  <sub>Built with ❤️ by <a href="https://github.com/HARISH19819">HARISH19819</a> and the open-source community.</sub>
+  <sub>Built with ❤️ using Python, Flask, React, scikit-learn, and Google Gemini AI.</sub>
 </div>

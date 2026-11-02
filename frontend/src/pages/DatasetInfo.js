@@ -40,8 +40,11 @@ function DatasetInfo() {
               numeric_columns: data.summary.numeric_columns || [],
               categorical_columns: data.summary.categorical_columns || [],
               missing_values: data.summary.missing_values || {},
-              sample_rows: []
+              sample_rows: data.sample_rows || []
             });
+            if (data.target_column && !targetColumn) {
+              setTargetColumn(data.target_column);
+            }
           }
         })
         .catch(() => {})

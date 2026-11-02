@@ -139,15 +139,15 @@ def train_models(target_column=None):
 
     if PROBLEM_TYPE == "classification":
         models = {
-            "Logistic Regression": LogisticRegression(max_iter=1000, random_state=42),
-            "Decision Tree": DecisionTreeClassifier(random_state=42),
-            "Random Forest": RandomForestClassifier(n_estimators=100, random_state=42)
+            "Logistic Regression": LogisticRegression(max_iter=300, solver="lbfgs", random_state=42),
+            "Decision Tree": DecisionTreeClassifier(max_depth=10, random_state=42),
+            "Random Forest": RandomForestClassifier(n_estimators=30, max_depth=10, random_state=42)
         }
     else:
         models = {
             "Linear Regression": LinearRegression(),
-            "Decision Tree": DecisionTreeRegressor(random_state=42),
-            "Random Forest": RandomForestRegressor(n_estimators=100, random_state=42)
+            "Decision Tree": DecisionTreeRegressor(max_depth=10, random_state=42),
+            "Random Forest": RandomForestRegressor(n_estimators=30, max_depth=10, random_state=42)
         }
 
     scores = {}
@@ -245,7 +245,17 @@ def evaluate_model():
         except Exception:
             pass
 
-    if BEST_MODEL_OBJECT is None or not SPLIT_DATA:
+    if not SPLIT_DATA or "X_train" not in SPLIT_DATA:
+        from services.data_service import get_active_target
+        df = get_dataframe()
+        target = get_active_target()
+        if df is not None and target and target in df.columns:
+            try:
+                perform_train_test_split(df, target)
+            except Exception:
+                pass
+
+    if BEST_MODEL_OBJECT is None or not SPLIT_DATA or "X_train" not in SPLIT_DATA:
         return {"error": "Please train a model first"}
 
     X_train = SPLIT_DATA["X_train"]

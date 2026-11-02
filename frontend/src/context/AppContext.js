@@ -87,26 +87,47 @@ export const AppProvider = ({ children }) => {
       .forEach((k) => localStorage.removeItem(k));
   };
 
-  // Sync with backend on first load if localStorage was empty
+  // Sync with backend on mount to restore workspace state seamlessly across refreshes
   useEffect(() => {
     const API_BASE = process.env.REACT_APP_API_URL || "http://127.0.0.1:5000";
-    if (!datasetInfo) {
-      fetch(`${API_BASE}/dataset-info`)
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (data && data.summary && data.summary.rows > 0) {
-            setDatasetInfo({
-              rows: data.summary.rows,
-              columns: data.summary.columns,
-              numeric_columns: data.summary.numeric_columns,
-              categorical_columns: data.summary.categorical_columns,
-              missing_values: data.summary.missing_values,
-              sample_rows: []
+    fetch(`${API_BASE}/pipeline-state`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && data.has_dataset) {
+          // Sync datasetInfo
+          setDatasetInfoState((prev) => {
+            const updated = {
+              rows: data.rows,
+              columns: data.columns,
+              numeric_columns: data.numeric_columns || [],
+              categorical_columns: data.categorical_columns || [],
+              missing_values: data.missing_values || {},
+              sample_rows: data.sample_rows || []
+            };
+            saveItem("datasetInfo", updated);
+            return updated;
+          });
+
+          // Sync targetColumn if present on backend
+          if (data.target_column) {
+            setTargetColumnState((prev) => {
+              const target = prev || data.target_column;
+              saveItem("targetColumn", target);
+              return target;
             });
           }
-        })
-        .catch(() => {});
-    }
+
+          // Sync trainedModel if present on backend
+          if (data.trained_model) {
+            setTrainedModelState((prev) => {
+              const model = prev || data.trained_model;
+              saveItem("trainedModel", model);
+              return model;
+            });
+          }
+        }
+      })
+      .catch(() => {});
   }, []);
 
   return (

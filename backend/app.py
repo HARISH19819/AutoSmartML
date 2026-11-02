@@ -60,6 +60,14 @@ else:
     origins_list = [o.strip() for o in cors_origins_raw.split(",") if o.strip()]
     CORS(app, resources={r"/*": {"origins": origins_list}})
 
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
+    return response
+
+
 # Security: Limit maximum upload size (default 32MB) to prevent Denial-of-Service attacks
 app.config["MAX_CONTENT_LENGTH"] = int(os.environ.get("MAX_CONTENT_LENGTH", 32 * 1024 * 1024))
 
@@ -175,10 +183,56 @@ def dataset_info():
 
     summary = create_dataset_summary(df)
     ai_insights = dataset_overview_ai(summary)
+    sample_df = df.head(5).copy()
+    sample_rows = sample_df.replace({pd.NA: None, float('nan'): None}).to_dict(orient="records")
 
     return jsonify({
         "summary": summary,
-        "ai_insights": ai_insights
+        "ai_insights": ai_insights,
+        "sample_rows": sample_rows,
+        "target_column": get_active_target()
+    })
+
+
+@app.route("/pipeline-state")
+def pipeline_state():
+    df = get_dataframe()
+    if df is None or df.empty:
+        return jsonify({
+            "has_dataset": False,
+            "target": None,
+            "trained_model": None
+        })
+
+    summary = create_dataset_summary(df)
+    sample_df = df.head(5).copy()
+    sample_rows = sample_df.replace({pd.NA: None, float('nan'): None}).to_dict(orient="records")
+    target = get_active_target()
+
+    model_info = None
+    if os.path.exists(MODEL_SAVE_PATH):
+        try:
+            import joblib
+            bundle = joblib.load(MODEL_SAVE_PATH)
+            model_info = {
+                "best_model": bundle.get("model_name"),
+                "best_score": bundle.get("best_score"),
+                "problem_type": bundle.get("problem_type"),
+                "scores": bundle.get("scores", {})
+            }
+        except Exception:
+            pass
+
+    return jsonify({
+        "has_dataset": True,
+        "rows": len(df),
+        "columns": len(df.columns),
+        "numeric_columns": summary.get("numeric_columns", []),
+        "categorical_columns": summary.get("categorical_columns", []),
+        "missing_values": summary.get("missing_values", {}),
+        "target_column": target,
+        "sample_rows": sample_rows,
+        "trained_model": model_info
     })
 
 

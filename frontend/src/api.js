@@ -4,6 +4,19 @@ export const getApiBaseUrl = () => API_BASE;
 export const getDownloadModelUrl = () => `${API_BASE}/download-model`;
 
 /**
+ * Fetch unified backend pipeline state (dataset, target, model)
+ */
+export async function getPipelineState() {
+  try {
+    const res = await fetch(`${API_BASE}/pipeline-state`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    return null;
+  }
+}
+
+/**
  * Check backend connection status
  */
 export async function checkBackendHealth() {
